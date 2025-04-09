@@ -1147,11 +1147,12 @@ function resizeGameCanvas() {
     gridSize = Math.max(Math.round(baseGridSize * scaleFactor), 8);
     
     // Ensure tap controls match the size of the canvas
-    if (tapControls) {
+    if (tapControls && gameArea) {
+        const gameAreaRect = gameArea.getBoundingClientRect();
         tapControls.style.width = canvas.width + 'px';
         tapControls.style.height = canvas.height + 'px';
-        tapControls.style.top = canvas.offsetTop + 'px';
-        tapControls.style.left = canvas.offsetLeft + 'px';
+        tapControls.style.top = (canvas.offsetTop - gameAreaRect.top) + 'px';
+        tapControls.style.left = (canvas.offsetLeft - gameAreaRect.left) + 'px';
     }
     
     // Recalculate game area dimensions in grid cells

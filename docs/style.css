@@ -267,6 +267,7 @@ canvas {
     height: 100% !important;
     z-index: 100 !important;
     pointer-events: none !important;
+    box-sizing: border-box !important; /* Ensure padding/border is inside */
 }
 
 .tap-zone {
@@ -281,33 +282,34 @@ canvas {
     pointer-events: auto !important;
     cursor: pointer !important;
     touch-action: none !important;
+    box-sizing: border-box !important; /* Ensure padding/border is inside */
 }
 
 .tap-up {
-    top: 5% !important; /* Adjusted to ensure visibility */
+    top: 0 !important;
     left: 25% !important;
     width: 50% !important;
-    height: 25% !important;
+    height: 33% !important;
 }
 
 .tap-down {
-    bottom: 5% !important; /* Adjusted to ensure visibility */
+    bottom: 0 !important;
     left: 25% !important;
     width: 50% !important;
-    height: 25% !important;
+    height: 33% !important;
 }
 
 .tap-left {
+    left: 0 !important;
     top: 33% !important;
-    left: 5% !important; /* Adjusted to ensure visibility */
-    width: 20% !important;
+    width: 25% !important;
     height: 34% !important;
 }
 
 .tap-right {
+    right: 0 !important;
     top: 33% !important;
-    right: 5% !important; /* Adjusted to ensure visibility */
-    width: 20% !important;
+    width: 25% !important;
     height: 34% !important;
 }
 
@@ -316,11 +318,61 @@ canvas {
     background-color: rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Debug mode for tap zones */
+/* Make tap zones more visible in debug mode */
 .tap-controls.debug .tap-zone {
     background-color: rgba(255, 0, 0, 0.2) !important;
     border: 2px solid white !important;
     color: white !important;
+}
+
+/* Add arrow indicators to make tap zones more obvious */
+.tap-zone:after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.3;
+}
+
+.tap-up:after {
+    content: "▲";
+    font-size: 24px;
+}
+
+.tap-down:after {
+    content: "▼";
+    font-size: 24px;
+}
+
+.tap-left:after {
+    content: "◀";
+    font-size: 24px;
+}
+
+.tap-right:after {
+    content: "▶";
+    font-size: 24px;
+}
+
+/* Ensure tap zones are visible on mobile */
+@media (max-width: 767px) {
+    .tap-controls {
+        z-index: 30; /* Even higher z-index on mobile */
+    }
+    
+    .tap-zone {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .tap-zone:active {
+        background-color: rgba(255, 255, 255, 0.25);
+    }
 }
 
 /* New D-pad design - Perspective 3D buttons */
