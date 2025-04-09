@@ -1146,11 +1146,22 @@ function resizeGameCanvas() {
     // Calculate grid size - must be an integer to avoid rendering artifacts
     gridSize = Math.max(Math.round(baseGridSize * scaleFactor), 8);
     
-    // Ensure tap controls match the size of the canvas
+    // Ensure tap controls match the size of the canvas using absolute positioning
     if (tapControls && gameArea) {
-        tapControls.style.inset = "0";
-        tapControls.style.width = canvas.width + 'px';
-        tapControls.style.height = canvas.height + 'px';
+        // Position tap-controls to exactly cover the canvas
+        tapControls.style.position = 'absolute';
+        tapControls.style.inset = '0';
+        tapControls.style.width = '100%';
+        tapControls.style.height = '100%';
+        tapControls.style.zIndex = '100';
+        tapControls.style.pointerEvents = 'none';
+        
+        // Log the positioning for debugging
+        console.log("Updated tap controls positioning:", {
+            inset: tapControls.style.inset,
+            width: tapControls.style.width,
+            height: tapControls.style.height
+        });
     }
     
     // Recalculate game area dimensions in grid cells
@@ -1207,29 +1218,21 @@ function resizeGameCanvas() {
         drawFood();
     }
 
-    // Add this block to position tap zones directly on the canvas
+    // Add this block to position tap zones directly over the canvas - completely revised approach
     setTimeout(function() {
-        const tapControls = document.getElementById('tapControls');
+        const tapControls = document.querySelector('.tap-controls');
         if (tapControls && canvas) {
-            const canvasRect = canvas.getBoundingClientRect();
-            
-            // Position tap controls directly over the canvas
-            tapControls.style.position = 'absolute';
-            tapControls.style.top = '0';
-            tapControls.style.left = '0';
-            tapControls.style.width = '100%';
-            tapControls.style.height = '100%';
-            
-            // Apply styles directly to tap zones
+            // Make tap zones correctly positioned and visible
             const zones = {
-                up: document.getElementById('tapUp'),
-                down: document.getElementById('tapDown'),
-                left: document.getElementById('tapLeft'),
-                right: document.getElementById('tapRight')
+                'up': document.getElementById('tapUp'),
+                'down': document.getElementById('tapDown'),
+                'left': document.getElementById('tapLeft'),
+                'right': document.getElementById('tapRight')
             };
             
-            Object.entries(zones).forEach(([dir, zone]) => {
+            Object.entries(zones).forEach(([direction, zone]) => {
                 if (zone) {
+                    // Core styles that must be applied
                     zone.style.position = 'absolute';
                     zone.style.display = 'flex';
                     zone.style.alignItems = 'center';
@@ -1237,36 +1240,32 @@ function resizeGameCanvas() {
                     zone.style.pointerEvents = 'auto';
                     zone.style.fontSize = '24px';
                     
-                    switch(dir) {
-                        case 'up':
-                            zone.style.top = '0';
-                            zone.style.left = '25%';
-                            zone.style.width = '50%';
-                            zone.style.height = '33%';
-                            break;
-                        case 'down':
-                            zone.style.bottom = '0';
-                            zone.style.left = '25%';
-                            zone.style.width = '50%';
-                            zone.style.height = '33%';
-                            break;
-                        case 'left':
-                            zone.style.top = '33%';
-                            zone.style.left = '0';
-                            zone.style.width = '25%';
-                            zone.style.height = '34%';
-                            break;
-                        case 'right':
-                            zone.style.top = '33%';
-                            zone.style.right = '0';
-                            zone.style.width = '25%';
-                            zone.style.height = '34%';
-                            break;
+                    // Position based on direction - using percentages for responsive layout
+                    if (direction === 'up') {
+                        zone.style.top = '0';
+                        zone.style.left = '25%';
+                        zone.style.width = '50%';
+                        zone.style.height = '33%';
+                    } else if (direction === 'down') {
+                        zone.style.top = '67%'; // Position from top instead of bottom for consistency
+                        zone.style.left = '25%';
+                        zone.style.width = '50%';
+                        zone.style.height = '33%';
+                    } else if (direction === 'left') {
+                        zone.style.top = '33%';
+                        zone.style.left = '0';
+                        zone.style.width = '25%';
+                        zone.style.height = '34%';
+                    } else if (direction === 'right') {
+                        zone.style.top = '33%';
+                        zone.style.left = '75%'; // Position from left instead of right for consistency
+                        zone.style.width = '25%';
+                        zone.style.height = '34%';
                     }
                 }
             });
             
-            console.log("Tap zones positioned after canvas resize");
+            console.log("Tap zones repositioned using consistent positioning approach");
         }
     }, 50);
 

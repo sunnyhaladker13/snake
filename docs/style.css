@@ -264,7 +264,9 @@ canvas {
     inset: 0 !important;  /* covers entire parent */
     z-index: 100 !important;
     pointer-events: none !important;
-    box-sizing: border-box !important; /* Ensure padding/border is inside */
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 .tap-zone {
