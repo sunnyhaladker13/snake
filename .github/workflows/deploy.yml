@@ -39,16 +39,15 @@ jobs:
           cp -r docs/* dist/
       
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v2
         with:
           path: './dist'
       
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-artifacts
           path: './dist'
-          # v2 supports retention-days
           retention-days: 7
 
   deploy:
