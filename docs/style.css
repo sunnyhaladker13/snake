@@ -99,8 +99,9 @@ h1 {
 .game-area {
     position: relative !important;
     width: 100% !important;
-    height: 75vh !important; /* Use viewport height for better screen utilization */
+    height: 60vh !important; /* Changed from 75vh to accommodate mobile browser chrome */
     min-height: 300px !important; /* Minimum height to ensure playability */
+    max-height: 600px !important; /* Add maximum height */
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -1917,4 +1918,42 @@ body.modal-open {
     background-color: rgba(255, 0, 0, 0.2) !important;
     border: 2px solid white !important;
     color: white !important;
+}
+
+/* Make canvas fill more space on mobile */
+@media (max-width: 767px) {
+    .game-area {
+        height: 70vh !important; /* Increase height on mobile */
+        min-height: 280px !important;
+    }
+    
+    canvas {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 90vw !important;
+        max-height: 90vw !important;
+        object-fit: contain !important; 
+    }
+}
+
+/* Further adjustment for very small screens */
+@media (max-width: 380px) {
+    .game-container {
+        padding: 0.5rem !important;
+    }
+    
+    h1 {
+        font-size: 1.5rem !important;
+        margin-bottom: 0 !important;
+    }
+    
+    .score {
+        font-size: 1.8rem !important;
+        margin: 0 0 0.3rem !important;
+    }
+    
+    .game-area {
+        height: 65vh !important;
+        min-height: 250px !important;
+    }
 }

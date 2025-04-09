@@ -33,7 +33,11 @@
             return false;
         }
         
-        // Get the exact canvas position
+        // IMPORTANT: Ensure canvas is properly sized
+        // This may be causing the "small on mobile" issue
+        ensureProperCanvasSize(canvas);
+        
+        // Get the exact canvas position AFTER potential resizing
         const canvasRect = canvas.getBoundingClientRect();
         
         // Create a container positioned in FIXED coordinates relative to the viewport
@@ -107,7 +111,18 @@
         
         // Create a function to update the overlay position when screen changes
         function updatePosition() {
+            const canvas = document.getElementById('gameCanvas');
+            const container = document.getElementById('unifiedMobileControls');
+            
+            if (!canvas || !container) return;
+            
+            // Check if canvas size needs adjustment
+            ensureProperCanvasSize(canvas);
+            
+            // Get updated canvas position
             const updatedRect = canvas.getBoundingClientRect();
+            
+            // Update container position
             container.style.top = `${updatedRect.top}px`;
             container.style.left = `${updatedRect.left}px`;
             container.style.width = `${updatedRect.width}px`;
@@ -115,7 +130,9 @@
             
             console.log("MOBILE CONTROLS: Updated position to match canvas", {
                 top: container.style.top,
-                left: container.style.left
+                left: container.style.left,
+                width: container.style.width,
+                height: container.style.height
             });
         }
         
@@ -147,6 +164,52 @@
         
         console.log("MOBILE CONTROLS: Controls created successfully");
         return true;
+    }
+    
+    // NEW FUNCTION: Ensure the canvas is properly sized on mobile
+    function ensureProperCanvasSize(canvas) {
+        // Get the game area
+        const gameArea = canvas.parentElement;
+        if (!gameArea) return;
+        
+        console.log("MOBILE CONTROLS: Checking canvas size");
+        
+        // Calculate optimal size
+        const gameAreaWidth = gameArea.clientWidth;
+        const gameAreaHeight = gameArea.clientHeight;
+        
+        // Log the current dimensions for debugging
+        console.log("Game area dimensions:", {
+            width: gameAreaWidth,
+            height: gameAreaHeight
+        });
+        console.log("Current canvas dimensions:", {
+            width: canvas.width,
+            height: canvas.height,
+            clientWidth: canvas.clientWidth,
+            clientHeight: canvas.clientHeight
+        });
+        
+        // If canvas looks too small, try to resize it
+        if (canvas.clientWidth < gameAreaWidth * 0.9 || canvas.clientHeight < gameAreaHeight * 0.9) {
+            console.log("MOBILE CONTROLS: Canvas appears too small, attempting resize");
+            
+            // Set canvas dimensions to better fill the game area
+            // Preserve aspect ratio (square)
+            const size = Math.min(gameAreaWidth * 0.95, gameAreaHeight * 0.95);
+            
+            // Set display size (CSS)
+            canvas.style.width = size + 'px';
+            canvas.style.height = size + 'px';
+            
+            // Call resizeGameCanvas if it exists
+            if (typeof window.resizeGameCanvas === 'function') {
+                console.log("MOBILE CONTROLS: Calling game's resize function");
+                window.resizeGameCanvas();
+            }
+            
+            console.log("MOBILE CONTROLS: Resized canvas to", size + 'px');
+        }
     }
     
     // Add optimized event handlers for all device types
