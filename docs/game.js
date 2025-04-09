@@ -835,8 +835,11 @@ window.onload = function() {
     
     if (isMobile) {
         touchControls.style.display = 'flex';
-    } else {
-        touchControls.style.display = 'none';
+        
+        // Remove these lines as they're causing problems
+        // document.body.style.paddingBottom = '120px';
+        // const gameContainer = document.querySelector('.game-container');
+        // gameContainer.style.marginBottom = '20px';
     }
 
     // Set viewport height to ensure no scrolling
@@ -918,6 +921,54 @@ function setupTouchControls() {
     leftBtn.addEventListener('click', () => handleDirection('left'));
     rightBtn.addEventListener('click', () => handleDirection('right'));
     downBtn.addEventListener('click', () => handleDirection('down'));
+    
+    // Button controls for mobile - add touchstart events for better responsiveness
+    upBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleDirection('up');
+    });
+    leftBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleDirection('left');
+    });
+    rightBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleDirection('right');
+    });
+    downBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleDirection('down');
+    });
+
+    // Enhanced touch controls with visual feedback
+    const touchBtns = document.querySelectorAll('.touch-btn');
+    
+    touchBtns.forEach(btn => {
+        // Add touchstart event with visual feedback
+        btn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            // Add active class for visual feedback
+            btn.classList.add('active');
+            
+            // Handle direction based on button id
+            if (btn.id === 'upBtn') handleDirection('up');
+            else if (btn.id === 'leftBtn') handleDirection('left');
+            else if (btn.id === 'rightBtn') handleDirection('right');
+            else if (btn.id === 'downBtn') handleDirection('down');
+        });
+        
+        // Remove active class on touch end
+        btn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            btn.classList.remove('active');
+        });
+        
+        // Also remove active class when touch moves outside button
+        btn.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            btn.classList.remove('active');
+        });
+    });
 }
 
 // Helper function to handle direction changes
