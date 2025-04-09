@@ -28,6 +28,11 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v3
       
+      # Manual push instructions are as follows:
+      # git add .
+      # git commit -m "Your commit message"
+      # git push origin main
+      
       - name: Create and populate dist directory
         run: |
           mkdir -p dist
@@ -39,7 +44,7 @@ jobs:
           path: './dist'
       
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v1
         with:
           name: build-artifacts
           path: './dist'
