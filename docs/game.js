@@ -775,7 +775,7 @@ function updateScore() {
 document.addEventListener('keydown', changeDirection);
 
 // Initialize the game
-const canvasSize = 320;  // Reduced from 350 to 320
+const canvasSize = 380;  // Increased from 320 to 380
 
 window.onload = function() {
     // Resize canvas for better fit
@@ -850,6 +850,15 @@ window.onload = function() {
     const viewportHeight = window.innerHeight;
     if (viewportHeight < 650) {
         document.querySelector('.guide-toggle').style.display = 'none';
+    }
+
+    // Test device type and set up mobile controls
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        // Enable tap controls for mobile
+        const tapControls = document.querySelector('.tap-controls');
+        tapControls.style.display = 'block';
     }
 };
 
@@ -969,6 +978,135 @@ function setupTouchControls() {
             btn.classList.remove('active');
         });
     });
+
+    // Add haptic feedback if supported
+    function vibrateIfPossible() {
+        if ('vibrate' in navigator) {
+            navigator.vibrate(30); // Short vibration for 30ms
+        }
+    }
+    
+    // Enhanced touch button handling
+    const touchBtns = document.querySelectorAll('.touch-btn');
+    touchBtns.forEach(btn => {
+        btn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            vibrateIfPossible();
+            btn.classList.add('active');
+            
+            // Handle direction based on button id
+            if (btn.id === 'upBtn') handleDirection('up');
+            else if (btn.id === 'leftBtn') handleDirection('left');
+            else if (btn.id === 'rightBtn') handleDirection('right');
+            else if (btn.id === 'downBtn') handleDirection('down');
+        });
+        
+        btn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            btn.classList.remove('active');
+        });
+        
+        btn.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            btn.classList.remove('active');
+        });
+    });
+}
+
+// Improved mobile touch controls with modern gesture-based approach
+function setupTouchControls() {
+    // Get reference to canvas and other elements
+    const touchArea = document.getElementById('gameCanvas');
+    const swipeIndicator = document.getElementById('swipeIndicator');
+    
+    // Swipe gesture controls
+    let startX, startY;
+    const MIN_SWIPE = 30; // Minimum swipe distance
+
+    touchArea.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+        
+        // Show the swipe indicator briefly on first touch
+        if (gameRunning && !localStorage.getItem('swipeInstructionShown')) {
+            swipeIndicator.classList.add('visible');
+            setTimeout(() => {
+                swipeIndicator.classList.remove('visible');
+                localStorage.setItem('swipeInstructionShown', 'true');
+            }, 2000);
+        }
+    });
+
+    touchArea.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+    });
+
+    touchArea.addEventListener('touchend', (e) => {
+        if (!startX || !startY) return;
+        
+        const touch = e.changedTouches[0];
+        const dx = touch.clientX - startX;
+        const dy = touch.clientY - startY;
+        
+        // Only register as swipe if movement is significant
+        if (Math.abs(dx) > MIN_SWIPE || Math.abs(dy) > MIN_SWIPE) {
+            // Provide haptic feedback
+            vibrateIfPossible();
+            
+            if (Math.abs(dx) > Math.abs(dy)) {
+                // Horizontal swipe
+                if (dx > 0) handleDirection('right');
+                else handleDirection('left');
+            } else {
+                // Vertical swipe
+                if (dy > 0) handleDirection('down');
+                else handleDirection('up');
+            }
+        }
+        
+        startX = null;
+        startY = null;
+    });
+    
+    // Set up tap zone controls as alternative to swipes
+    const tapUp = document.getElementById('tapUp');
+    const tapDown = document.getElementById('tapDown');
+    const tapLeft = document.getElementById('tapLeft');
+    const tapRight = document.getElementById('tapRight');
+    
+    // Add event listeners for tap zones
+    tapUp.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        vibrateIfPossible();
+        handleDirection('up');
+    });
+    
+    tapDown.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        vibrateIfPossible();
+        handleDirection('down');
+    });
+    
+    tapLeft.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        vibrateIfPossible();
+        handleDirection('left');
+    });
+    
+    tapRight.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        vibrateIfPossible();
+        handleDirection('right');
+    });
+    
+    // Add haptic feedback
+    function vibrateIfPossible() {
+        if ('vibrate' in navigator) {
+            navigator.vibrate(30); // Short vibration for 30ms
+        }
+    }
 }
 
 // Helper function to handle direction changes

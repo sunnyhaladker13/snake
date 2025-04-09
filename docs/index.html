@@ -21,6 +21,19 @@
             <canvas id="gameCanvas" width="320" height="320"></canvas>
             <div id="gamePaused" class="game-status game-paused">PAUSED</div>
             <div id="gameOver" class="game-status game-over">GAME OVER</div>
+            
+            <!-- Add tap zones for directional control -->
+            <div class="tap-controls">
+                <div id="tapUp" class="tap-zone tap-up"></div>
+                <div id="tapDown" class="tap-zone tap-down"></div>
+                <div id="tapLeft" class="tap-zone tap-left"></div>
+                <div id="tapRight" class="tap-zone tap-right"></div>
+            </div>
+            
+            <!-- Add swipe indicator -->
+            <div id="swipeIndicator" class="swipe-indicator">
+                Swipe to change direction
+            </div>
         </div>
         
         <div class="controls-wrapper">
@@ -30,12 +43,7 @@
                 <button id="muteBtn" class="secondary-btn"><i class="fas fa-volume-up"></i></button>
             </div>
             
-            <div class="touch-controls">
-                <button id="upBtn" class="touch-btn up-btn"><i class="fas fa-arrow-up"></i></button>
-                <button id="leftBtn" class="touch-btn left-btn"><i class="fas fa-arrow-left"></i></button>
-                <button id="rightBtn" class="touch-btn right-btn"><i class="fas fa-arrow-right"></i></button>
-                <button id="downBtn" class="touch-btn down-btn"><i class="fas fa-arrow-down"></i></button>
-            </div>
+            <!-- Remove d-pad controls -->
         </div>
         
         <div class="game-info">
