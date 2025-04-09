@@ -900,6 +900,33 @@ window.onload = function() {
             left: !!tapZones.left,
             right: !!tapZones.right
         });
+
+        // Make sure the tap zones are properly set up
+        setTimeout(() => {
+            // Force a refresh of tap zones
+            setupTapZoneControls();
+            
+            // Add debug info to console
+            const tapZones = {
+                up: document.getElementById('tapUp'),
+                down: document.getElementById('tapDown'),
+                left: document.getElementById('tapLeft'),
+                right: document.getElementById('tapRight')
+            };
+            
+            // Log detailed info about tap zones
+            Object.keys(tapZones).forEach(key => {
+                const zone = tapZones[key];
+                if (zone) {
+                    console.log(`${key} zone:`, {
+                        width: zone.offsetWidth,
+                        height: zone.offsetHeight,
+                        position: zone.getBoundingClientRect(),
+                        events: zone.ontouchend ? "Attached" : "Missing"
+                    });
+                }
+            });
+        }, 500); // Longer delay for debugging info
     } catch (error) {
         console.error("Error during initialization:", error);
     }
@@ -1018,113 +1045,116 @@ function setupTouchControls() {
 
 // Separate function for tap zone controls
 function setupTapZoneControls() {
+    console.log("Setting up tap controls with direct event binding");
+    
+    // Use direct DOM queries rather than cached variables
     const tapUp = document.getElementById('tapUp');
     const tapDown = document.getElementById('tapDown');
     const tapLeft = document.getElementById('tapLeft');
     const tapRight = document.getElementById('tapRight');
     
-    // Add haptic feedback
-    function vibrateIfPossible() {
+    // Log the existence of these elements to verify
+    console.log("Tap zones found:", {
+        up: !!tapUp, 
+        down: !!tapDown, 
+        left: !!tapLeft, 
+        right: !!tapRight
+    });
+    
+    // Function to handle direction change
+    function handleTapDirection(direction, event) {
+        // Always prevent default behavior
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        
+        console.log(`Tap on ${direction} detected`);
+        
+        // Provide haptic feedback
         if ('vibrate' in navigator) {
-            navigator.vibrate(30); // Short vibration for 30ms
+            navigator.vibrate(30);
+        }
+        
+        // Only change direction if game is running and not paused
+        if (gameRunning && !gamePaused) {
+            // Directly call handleDirection without queuing
+            handleDirection(direction);
         }
     }
     
-    // Helper to add visual feedback to tap zones
-    function addTapFeedback(element) {
-        if (!element) return;
-        
-        ['touchstart', 'touchend', 'touchcancel'].forEach(event => {
-            element.addEventListener(event, (e) => {
-                if (event === 'touchstart') {
-                    element.style.backgroundColor = 'rgba(255, 255, 255, 0.25)';
-                } else {
-                    // Reset after a short delay for visual feedback
-                    setTimeout(() => {
-                        element.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                    }, 150);
-                }
-            });
-        });
-    }
-    
-    // Add visual feedback to all tap zones
-    [tapUp, tapDown, tapLeft, tapRight].forEach(addTapFeedback);
-    
-    // Fix: Use touchend instead of touchstart to avoid accidental swipes
-    // Also ensure we're preventing default and stopping propagation
-    
-    // Add event listeners for tap zones if they exist
+    // Add the most basic event listeners possible with maximum compatibility
     if (tapUp) {
-        // Handle both touchstart and touchend to ensure responsiveness
-        tapUp.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            vibrateIfPossible();
-            // Visual feedback handled by addTapFeedback
-        });
+        // Remove any existing listeners
+        tapUp.removeEventListener('touchend', function(){});
         
-        tapUp.addEventListener('touchend', (e) => {
+        // Add the simplest form of listeners
+        tapUp.ontouchstart = function(e) { 
+            e.preventDefault(); 
+            tapUp.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; 
+        };
+        
+        tapUp.ontouchend = function(e) { 
             e.preventDefault();
-            e.stopPropagation();
-            // Apply direction change on touchend to avoid issues with accidental swipes
-            if (gameRunning && !gamePaused) {
-                handleDirection('up');
-            }
-        });
+            handleTapDirection('up', e);
+            setTimeout(() => {
+                tapUp.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+            }, 150);
+        };
     }
     
     if (tapDown) {
-        tapDown.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            vibrateIfPossible();
-        });
+        tapDown.removeEventListener('touchend', function(){});
         
-        tapDown.addEventListener('touchend', (e) => {
+        tapDown.ontouchstart = function(e) { 
+            e.preventDefault(); 
+            tapDown.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; 
+        };
+        
+        tapDown.ontouchend = function(e) { 
             e.preventDefault();
-            e.stopPropagation();
-            if (gameRunning && !gamePaused) {
-                handleDirection('down');
-            }
-        });
+            handleTapDirection('down', e);
+            setTimeout(() => {
+                tapDown.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+            }, 150);
+        };
     }
     
     if (tapLeft) {
-        tapLeft.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            vibrateIfPossible();
-        });
+        tapLeft.removeEventListener('touchend', function(){});
         
-        tapLeft.addEventListener('touchend', (e) => {
+        tapLeft.ontouchstart = function(e) { 
+            e.preventDefault(); 
+            tapLeft.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; 
+        };
+        
+        tapLeft.ontouchend = function(e) { 
             e.preventDefault();
-            e.stopPropagation();
-            if (gameRunning && !gamePaused) {
-                handleDirection('left');
-            }
-        });
+            handleTapDirection('left', e);
+            setTimeout(() => {
+                tapLeft.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+            }, 150);
+        };
     }
     
     if (tapRight) {
-        tapRight.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            vibrateIfPossible();
-        });
+        tapRight.removeEventListener('touchend', function(){});
         
-        tapRight.addEventListener('touchend', (e) => {
+        tapRight.ontouchstart = function(e) { 
+            e.preventDefault(); 
+            tapRight.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; 
+        };
+        
+        tapRight.ontouchend = function(e) { 
             e.preventDefault();
-            e.stopPropagation();
-            if (gameRunning && !gamePaused) {
-                handleDirection('right');
-            }
-        });
+            handleTapDirection('right', e);
+            setTimeout(() => {
+                tapRight.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+            }, 150);
+        };
     }
     
-    // Log initialization for debugging
-    console.log("Tap zone controls initialized:", 
-        { up: !!tapUp, down: !!tapDown, left: !!tapLeft, right: !!tapRight });
+    console.log("Tap zone controls initialization completed");
 }
 
 // Add visual effects to the game

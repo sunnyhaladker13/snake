@@ -1598,3 +1598,111 @@ body.modal-open {
         gap: 0.4rem;
     }
 }
+
+/* Fix tap zones visibility and responsiveness */
+.tap-controls {
+    display: block !important; /* Force display */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 20; /* Ensure it's above other elements but below modals */
+    pointer-events: none; /* Let events pass through by default */
+    touch-action: none;
+}
+
+.tap-zone {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.05);
+    pointer-events: auto; /* Capture events */
+    touch-action: none; /* Prevent browser handling */
+    -webkit-tap-highlight-color: rgba(0,0,0,0); /* Remove tap highlight on iOS */
+}
+
+/* Make tap zones more visible in debug mode */
+.tap-controls.debug .tap-zone {
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Make tap zones larger and more accessible */
+.tap-up {
+    top: 0;
+    left: 25%;
+    width: 50%;
+    height: 33%;
+}
+
+.tap-down {
+    bottom: 0;
+    left: 25%;
+    width: 50%;
+    height: 33%;
+}
+
+.tap-left {
+    top: 33%;
+    left: 0;
+    width: 25%;
+    height: 34%;
+}
+
+.tap-right {
+    top: 33%;
+    right: 0;
+    width: 25%;
+    height: 34%;
+}
+
+/* Add arrow indicators to make tap zones more obvious */
+.tap-zone:after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.3;
+}
+
+.tap-up:after {
+    content: "▲";
+    font-size: 24px;
+}
+
+.tap-down:after {
+    content: "▼";
+    font-size: 24px;
+}
+
+.tap-left:after {
+    content: "◀";
+    font-size: 24px;
+}
+
+.tap-right:after {
+    content: "▶";
+    font-size: 24px;
+}
+
+/* Ensure tap zones are visible on mobile */
+@media (max-width: 767px) {
+    .tap-controls {
+        z-index: 30; /* Even higher z-index on mobile */
+    }
+    
+    .tap-zone {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .tap-zone:active {
+        background-color: rgba(255, 255, 255, 0.25);
+    }
+}

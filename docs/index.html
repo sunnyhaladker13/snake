@@ -22,12 +22,12 @@
             <div id="gamePaused" class="game-status game-paused">PAUSED</div>
             <div id="gameOver" class="game-status game-over">GAME OVER</div>
             
-            <!-- Make sure tap zones are inside the game area and correctly structured -->
+            <!-- Ensure tap zones are directly inside the game area -->
             <div class="tap-controls">
-                <div id="tapUp" class="tap-zone tap-up" aria-label="Tap to move up"></div>
-                <div id="tapDown" class="tap-zone tap-down" aria-label="Tap to move down"></div>
-                <div id="tapLeft" class="tap-zone tap-left" aria-label="Tap to move left"></div>
-                <div id="tapRight" class="tap-zone tap-right" aria-label="Tap to move right"></div>
+                <div id="tapUp" class="tap-zone tap-up"></div>
+                <div id="tapDown" class="tap-zone tap-down"></div>
+                <div id="tapLeft" class="tap-zone tap-left"></div>
+                <div id="tapRight" class="tap-zone tap-right"></div>
             </div>
             
             <!-- Add swipe indicator -->
@@ -204,11 +204,17 @@
             const tapControls = document.querySelector('.tap-controls');
             if (tapControls) {
                 tapControls.classList.toggle('debug');
-                console.log('Tap zone debug mode:', tapControls.classList.contains('debug'));
+                
+                // Force refresh events on tap zones
+                setupTapZoneControls();
+                
                 return tapControls.classList.contains('debug');
             }
             return false;
         }
+        
+        // Add this to make debugging easier from console
+        window.toggleTapControls = toggleTapZoneDebug;
         
         // You can call this in the console to debug tap zones:
         // toggleTapZoneDebug()
