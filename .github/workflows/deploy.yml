@@ -43,9 +43,9 @@ jobs:
         with:
           path: './dist'
       
-      # Fix the version issue - change from v3 to v2 (or v4)
+      # Update to the latest stable version of upload-artifact
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-artifacts
           path: './dist'
