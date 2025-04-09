@@ -85,9 +85,9 @@
             tapZone.style.fontSize = '24px';
             tapZone.style.color = 'rgba(255,255,255,0.7)'; 
             tapZone.style.backgroundColor = 'rgba(255,255,255,0.1)';
+            tapZone.style.pointerEvents = 'auto'; // Ensure tap zones are clickable
+            tapZone.style.touchAction = 'none'; // Prevent default touch behavior
             tapZone.style.border = '2px solid rgba(255,255,255,0.2)';
-            tapZone.style.pointerEvents = 'auto';
-            tapZone.style.touchAction = 'none'; // Critical for iOS
             tapZone.textContent = symbol;
             
             // Add direct onclick attribute

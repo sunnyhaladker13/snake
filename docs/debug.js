@@ -41,6 +41,8 @@
                 setTimeout(() => {
                     element.style.backgroundColor = originalBg;
                 }, 1000);
+                
+                console.log(`${name} zone position:`, element.getBoundingClientRect());
             } else {
                 console.error(`${name} zone element not found`);
             }

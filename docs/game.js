@@ -1150,12 +1150,9 @@ function resizeGameCanvas() {
     if (tapControls) {
         tapControls.style.width = canvas.width + 'px';
         tapControls.style.height = canvas.height + 'px';
-        
-        // Center tap controls over the canvas
-        tapControls.style.position = 'absolute';
-        tapControls.style.top = '50%';
-        tapControls.style.left = '50%';
-        tapControls.style.transform = 'translate(-50%, -50%)';
+        tapControls.style.top = canvas.offsetTop + 'px';
+        tapControls.style.left = canvas.offsetLeft + 'px';
+        tapControls.style.pointerEvents = 'auto'; // Ensure tap zones are clickable
     }
     
     // Recalculate game area dimensions in grid cells

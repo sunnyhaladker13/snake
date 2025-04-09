@@ -37,12 +37,12 @@
         if (tapControls) {
             tapControls.style.display = 'block';
             tapControls.style.position = 'absolute';
-            tapControls.style.top = '0';
-            tapControls.style.left = '0';
-            tapControls.style.width = '100%';
-            tapControls.style.height = '100%';
+            tapControls.style.top = canvas.offsetTop + 'px';
+            tapControls.style.left = canvas.offsetLeft + 'px';
+            tapControls.style.width = canvas.width + 'px';
+            tapControls.style.height = canvas.height + 'px';
             tapControls.style.zIndex = '100';
-            tapControls.style.pointerEvents = 'none';
+            tapControls.style.pointerEvents = 'auto'; // Ensure tap zones are clickable
         }
         
         // Add styles to each zone
