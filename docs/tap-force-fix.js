@@ -7,7 +7,6 @@
 (function() {
     console.log("TAP FORCE FIX: Loading");
     
-    // Function to force the absolute tap zones to be recreated
     function forceFixTapZones() {
         console.log("TAP FORCE FIX: Running force fix");
         
@@ -18,128 +17,151 @@
             return false;
         }
         
-        // Get canvas dimensions and position
+        // CRITICAL: Get viewport-relative position of the canvas
         const rect = canvas.getBoundingClientRect();
         console.log("TAP FORCE FIX: Canvas position:", rect);
         
-        // First try using the recreateAbsoluteTapControls function if available
-        if (typeof window.recreateAbsoluteTapControls === 'function') {
-            console.log("TAP FORCE FIX: Using absolute tap controls recreation");
-            window.recreateAbsoluteTapControls();
-            return true;
-        }
+        // Clean up - remove any other tap zone containers to avoid conflicts
+        ['absoluteTapContainer', 'forceFixContainer'].forEach(id => {
+            const old = document.getElementById(id);
+            if (old) old.remove();
+        });
         
-        // Fallback to creating our own controls
-        console.log("TAP FORCE FIX: Absolute tap controls not available, creating custom zones");
-        
-        // Remove any existing force fix container
-        const oldContainer = document.getElementById('forceFixContainer');
-        if (oldContainer) {
-            oldContainer.remove();
-        }
-        
-        // Create a container positioned directly over the canvas
+        // Create a container positioned using FIXED positioning relative to the viewport
+        // This ensures it stays aligned with the canvas even during scroll/resize
         const container = document.createElement('div');
-        container.id = 'forceFixContainer';
+        container.id = 'fixedTapContainer';
+        
+        // Use fixed positioning to overlay exactly on top of the canvas in viewport
         container.style.cssText = `
-            position: fixed;
-            top: ${rect.top}px;
-            left: ${rect.left}px;
-            width: ${rect.width}px;
-            height: ${rect.height}px;
-            z-index: 10000;
-            pointer-events: none;
+            position: fixed !important;
+            top: ${rect.top}px !important;
+            left: ${rect.left}px !important;
+            width: ${rect.width}px !important;
+            height: ${rect.height}px !important;
+            z-index: 99999 !important;
+            pointer-events: none !important;
+            touch-action: none !important;
+            transform: translate3d(0,0,0) !important; /* Force GPU acceleration */
+            border: 2px solid red; /* Debug border - will be hidden later */
         `;
         
+        // Attach to body to ensure no other element's positioning affects it
         document.body.appendChild(container);
         
-        // Create zones
+        // Create tap zones with a single, unified approach
         const zones = [
-            { dir: 'up', position: 'top: 0; left: 25%; width: 50%; height: 33%', text: '▲' },
-            { dir: 'down', position: 'bottom: 0; left: 25%; width: 50%; height: 33%', text: '▼' },
-            { dir: 'left', position: 'top: 33%; left: 0; width: 25%; height: 34%', text: '◀' },
-            { dir: 'right', position: 'top: 33%; right: 0; width: 25%; height: 34%', text: '▶' }
+            { dir: 'up', pos: 'top:0; left:25%; width:50%; height:33%', text: '▲' },
+            { dir: 'down', pos: 'bottom:0; left:25%; width:50%; height:33%', text: '▼' },
+            { dir: 'left', pos: 'top:33%; left:0; width:25%; height:34%', text: '◀' },
+            { dir: 'right', pos: 'top:33%; right:0; width:25%; height:34%', text: '▶' }
         ];
         
-        // Create each zone element
         zones.forEach(zone => {
             const el = document.createElement('div');
-            el.className = `force-fix-zone force-${zone.dir}`;
+            el.className = `fixed-tap-zone fixed-${zone.dir}`;
+            
+            // Unified styling with important flags to avoid overrides
             el.style.cssText = `
-                position: absolute;
-                ${zone.position};
-                pointer-events: auto;
-                background-color: rgba(255, 100, 100, 0.3);
-                color: white;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 30px;
-                border: 2px solid white;
+                position: absolute !important;
+                ${zone.pos} !important;
+                background-color: rgba(255,100,100,0.5) !important;
+                color: white !important;
+                pointer-events: auto !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                font-size: 28px !important;
+                touch-action: none !important;
+                border: 2px solid white !important;
+                user-select: none !important;
+                z-index: 100000 !important;
+                -webkit-tap-highlight-color: transparent !important;
             `;
             
             el.textContent = zone.text;
             container.appendChild(el);
             
-            // Add multiple event handlers
-            el.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log(`TAP FORCE FIX: Clicked ${zone.dir}`);
-                if (window.handleDirection) {
-                    window.handleDirection(zone.dir);
-                }
-            });
+            // CRITICAL: Use both event handlers and direct attribute for maximum compatibility
+            el.setAttribute('onclick', `window.handleDirection('${zone.dir}')`);
             
+            // Modern event listeners
+            el.addEventListener('click', function(e) {
+                e.preventDefault(); e.stopPropagation();
+                window.handleDirection(zone.dir);
+            }, {capture: true}); // Use capture to get events first
+            
+            // Touch events with visual feedback
             el.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                this.style.backgroundColor = 'rgba(255, 100, 100, 0.5)';
-            }, {passive: false});
+                e.preventDefault(); e.stopPropagation();
+                this.style.backgroundColor = 'rgba(255,255,255,0.6)';
+            }, {passive: false, capture: true});
             
             el.addEventListener('touchend', function(e) {
-                e.preventDefault();
-                this.style.backgroundColor = 'rgba(255, 100, 100, 0.3)';
-                if (window.handleDirection) {
-                    window.handleDirection(zone.dir);
-                }
-            }, {passive: false});
+                e.preventDefault(); e.stopPropagation();
+                this.style.backgroundColor = 'rgba(255,100,100,0.5)';
+                window.handleDirection(zone.dir);
+            }, {passive: false, capture: true});
+            
+            console.log(`TAP FORCE FIX: Created ${zone.dir} zone`);
         });
         
-        // Set a timeout to hide the debugging visuals after a few seconds
+        // Hide debug visuals after a moment
         setTimeout(function() {
-            container.querySelectorAll('.force-fix-zone').forEach(zone => {
-                zone.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                zone.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+            container.style.border = 'none';
+            document.querySelectorAll('.fixed-tap-zone').forEach(zone => {
+                zone.style.backgroundColor = 'rgba(255,255,255,0.2)';
+                zone.style.border = '1px solid rgba(255,255,255,0.3)';
             });
         }, 3000);
         
-        console.log("TAP FORCE FIX: Created custom tap zones");
+        // Add repositioning function when viewport changes
+        function updatePosition() {
+            const updatedRect = canvas.getBoundingClientRect();
+            container.style.top = `${updatedRect.top}px`;
+            container.style.left = `${updatedRect.left}px`;
+            container.style.width = `${updatedRect.width}px`;
+            container.style.height = `${updatedRect.height}px`;
+        }
+        
+        // Add to window object
+        window.updateFixedTapZones = updatePosition;
+        
+        // Add event listeners
+        window.addEventListener('resize', updatePosition);
+        window.addEventListener('scroll', updatePosition);
+        window.addEventListener('orientationchange', function() {
+            // Multiple checks after orientation change
+            setTimeout(updatePosition, 100);
+            setTimeout(updatePosition, 500);
+            setTimeout(updatePosition, 1000);
+        });
+        
+        console.log("TAP FORCE FIX: Fixed tap zones created and positioned directly over canvas");
         return true;
     }
     
-    // Make the function globally available
+    // Make function available globally
     window.forceFixTapZones = forceFixTapZones;
     
-    // Run the force fix with increasing delays to ensure it works
-    const delays = [1000, 2000, 3000, 5000];
+    // Run the fix with increasing delays to ensure it catches the final canvas position
+    const delays = [500, 1000, 2000, 3000];
     delays.forEach(delay => {
         setTimeout(forceFixTapZones, delay);
     });
     
-    // Always run it after orientation changes and resizes
-    window.addEventListener('resize', function() {
-        setTimeout(forceFixTapZones, 500);
-    });
+    // Add an emergency fix function users can call from console
+    window.emergencyTapFix = function() {
+        // Remove all existing containers
+        document.querySelectorAll('[id$="TapContainer"], [id$="FixContainer"]').forEach(el => el.remove());
+        return forceFixTapZones();
+    };
     
-    window.addEventListener('orientationchange', function() {
-        setTimeout(forceFixTapZones, 1000);
-    });
-    
-    // Run on load too
+    // Also run after load events
     window.addEventListener('load', function() {
-        setTimeout(forceFixTapZones, 1000);
-        setTimeout(forceFixTapZones, 3000);
+        setTimeout(forceFixTapZones, 500);
+        setTimeout(forceFixTapZones, 2000);
     });
     
-    console.log("TAP FORCE FIX: Initialized, will run at multiple intervals");
+    console.log("TAP FORCE FIX: Initialized with multiple timing checks");
 })();
