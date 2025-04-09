@@ -1,7 +1,7 @@
 /**
  * Mobile Device Touch Controls Fix
  * This script creates touch controls optimized specifically for actual mobile devices,
- * not just browser emulation.
+ * with neo-brutalist styling that's subtle but intuitive
  */
 
 (function() {
@@ -14,7 +14,7 @@
     
     console.log("MOBILE TOUCH FIX: Mobile device detected, initializing");
     
-    // Create the mobile touch controller
+    // Create the mobile touch controller with neo-brutalist styling
     function createMobileTouchControls() {
         console.log("MOBILE TOUCH FIX: Creating touch controls overlay");
         
@@ -52,7 +52,7 @@
         // Add to body so it's outside any other container hierarchy
         document.body.appendChild(container);
         
-        // Define the control zones with their positions
+        // Define the control zones with their positions and neo-brutalist symbols
         const zones = [
             { name: 'up', symbol: '▲', position: 'top: 0; left: 25%; width: 50%; height: 33%;' },
             { name: 'down', symbol: '▼', position: 'bottom: 0; left: 25%; width: 50%; height: 33%;' },
@@ -60,13 +60,14 @@
             { name: 'right', symbol: '▶', position: 'top: 33%; right: 0; width: 25%; height: 34%;' }
         ];
         
-        // Create each zone
+        // Create each zone with neo-brutalist styling
         zones.forEach(zone => {
             const touchZone = document.createElement('div');
             touchZone.id = `mobileTouch${zone.name.charAt(0).toUpperCase() + zone.name.slice(1)}`;
             touchZone.className = 'mobile-touch-zone';
             
-            // Style with absolute positioning inside the container
+            // Style with absolute positioning and neo-brutalist design
+            // More subtle styling that integrates with the game's aesthetic
             touchZone.style.cssText = `
                 position: absolute !important;
                 ${zone.position}
@@ -74,19 +75,32 @@
                 align-items: center !important;
                 justify-content: center !important;
                 pointer-events: auto !important;
-                background-color: rgba(255, 255, 255, 0.2) !important;
-                color: white !important;
-                font-size: 28px !important;
-                border-radius: 8px !important;
-                border: 2px solid rgba(255, 255, 255, 0.4) !important;
+                background-color: rgba(37, 37, 37, 0.1) !important;
+                color: rgba(255, 255, 255, 0.4) !important;
+                font-size: 20px !important;
+                border: 1px solid rgba(255, 255, 255, 0.15) !important;
                 touch-action: none !important;
                 -webkit-tap-highlight-color: transparent !important;
+                transition: all 0.15s ease-out !important;
             `;
             
-            touchZone.textContent = zone.symbol;
+            // Add inner content with neo-brutalist styling
+            const innerContent = document.createElement('div');
+            innerContent.style.cssText = `
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                width: 32px !important;
+                height: 32px !important;
+                font-size: 18px !important;
+                font-weight: bold !important;
+            `;
+            innerContent.textContent = zone.symbol;
+            touchZone.appendChild(innerContent);
+            
             container.appendChild(touchZone);
             
-            // Add the appropriate event handlers - optimized for mobile
+            // Add the appropriate event handlers - optimized for mobile with visual feedback
             addMobileTouchHandlers(touchZone, zone.name);
         });
         
@@ -106,40 +120,46 @@
             setTimeout(updateOverlayPosition, 1000);
         });
         
-        // For debugging on actual device
-        window.showMobileControls = function() {
-            document.querySelectorAll('.mobile-touch-zone').forEach(el => {
-                el.style.backgroundColor = 'rgba(255, 0, 0, 0.3) !important';
-                el.style.border = '3px solid white !important';
-            });
-            return "Mobile controls highlighted";
-        };
-        
-        // Hide debug overlay after a few seconds
-        setTimeout(() => {
-            document.querySelectorAll('.mobile-touch-zone').forEach(el => {
-                el.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
-                el.style.border = '1px solid rgba(255, 255, 255, 0.2)';
-            });
-        }, 2000);
+        // Briefly show controls when first created for better user awareness
+        document.querySelectorAll('.mobile-touch-zone').forEach(el => {
+            el.style.backgroundColor = 'rgba(255, 95, 31, 0.2)';
+            el.style.border = '2px solid rgba(255, 95, 31, 0.3)';
+            el.style.color = 'rgba(255, 255, 255, 0.7)';
+            
+            setTimeout(() => {
+                el.style.backgroundColor = 'rgba(37, 37, 37, 0.1)';
+                el.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+                el.style.color = 'rgba(255, 255, 255, 0.4)';
+            }, 1500);
+        });
         
         console.log("MOBILE TOUCH FIX: Touch overlay created successfully");
         return true;
     }
     
-    // Helper function to add touch handlers
+    // Helper function to add touch handlers with improved visual feedback
     function addMobileTouchHandlers(element, direction) {
-        // Mobile-optimized event handling
+        // Mobile-optimized event handling with neo-brutalist feedback
         element.addEventListener('touchstart', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            this.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
+            
+            // Neo-brutalist active state
+            this.style.backgroundColor = 'rgba(255, 95, 31, 0.25)';
+            this.style.border = '2px solid rgba(255, 95, 31, 0.4)';
+            this.style.transform = 'scale(0.97)';
+            this.querySelector('div').style.transform = 'scale(1.1)';
         }, {passive: false});
         
         element.addEventListener('touchend', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            this.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+            
+            // Reset to subtle state
+            this.style.backgroundColor = 'rgba(37, 37, 37, 0.1)';
+            this.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+            this.style.transform = 'scale(1)';
+            this.querySelector('div').style.transform = 'scale(1)';
             
             console.log(`MOBILE TOUCH FIX: Direction ${direction}`);
             triggerDirection(direction);
@@ -202,7 +222,6 @@
     
     // Run initialization with multiple attempts
     function initializeControls() {
-        // Try to create the controls immediately
         createMobileTouchControls();
         
         // Try again after DOM is ready
@@ -215,7 +234,6 @@
         // And again after everything has loaded
         window.addEventListener('load', () => {
             setTimeout(createMobileTouchControls, 1000);
-            // Try once more after a delay
             setTimeout(createMobileTouchControls, 3000);
         });
     }
@@ -223,8 +241,24 @@
     // Expose recreation function to window
     window.recreateMobileTouchControls = createMobileTouchControls;
     
+    // Visual debugging helper
+    window.toggleMobileControls = function(visible) {
+        document.querySelectorAll('.mobile-touch-zone').forEach(el => {
+            if (visible) {
+                el.style.backgroundColor = 'rgba(255, 95, 31, 0.2)';
+                el.style.border = '2px solid rgba(255, 95, 31, 0.4)';
+                el.style.color = 'rgba(255, 255, 255, 0.7)';
+            } else {
+                el.style.backgroundColor = 'rgba(37, 37, 37, 0.1)';
+                el.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+                el.style.color = 'rgba(255, 255, 255, 0.4)';
+            }
+        });
+        return `Mobile controls ${visible ? 'highlighted' : 'subtle'}`;
+    };
+    
     // Run the initialization
     initializeControls();
     
-    console.log("MOBILE TOUCH FIX: Initialization complete");
+    console.log("MOBILE TOUCH FIX: Initialization complete with neo-brutalist styling");
 })();
