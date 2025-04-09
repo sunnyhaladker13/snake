@@ -169,13 +169,10 @@ canvas {
 
 .controls-wrapper {
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+    flex-direction: column; /* Stack controls and touch controls vertically */
     align-items: center;
-    margin: 0.7rem 0 0.3rem;
-    width: 100%;
-    max-width: 320px;
-    margin: 0.7rem auto 0.3rem;
+    gap: 10px; /* Add spacing between controls and touch controls */
+    margin-top: 10px; /* Add spacing between the canvas and controls wrapper */
 }
 
 .controls {
@@ -236,10 +233,8 @@ canvas {
     flex-direction: column;
     align-items: center;
     gap: 8px;
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
+    position: relative; /* Changed from absolute to relative */
+    margin-top: 10px; /* Add spacing between the canvas and touch controls */
 }
 
 .touch-middle-row {
@@ -435,7 +430,7 @@ footer a:hover {
     .controls-wrapper {
         max-width: 280px;
         flex-direction: column;
-        gap: 0.7rem;
+        gap: 15px; /* Increase spacing for better usability */
     }
     
     .touch-controls {
@@ -462,10 +457,15 @@ footer a:hover {
     
     .controls-wrapper {
         max-width: 260px;
+        gap: 10px; /* Reduce spacing between controls and touch controls */
     }
     
     h1 {
         font-size: 1.3rem;
+    }
+
+    .touch-controls {
+        gap: 6px; /* Reduce gap between touch buttons */
     }
 }
 
