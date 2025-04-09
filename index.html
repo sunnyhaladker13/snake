@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div class="game-container">
+        <h1><i class="fas fa-snake"></i> Snake Game</h1>
+        
+        <div class="game-canvas-wrapper">
+            <div class="score-container">Score: <span id="score">0</span></div>
+            <canvas id="gameCanvas" width="400" height="400"></canvas>
+            <div id="gamePaused" class="game-status game-paused">PAUSED</div>
+            <div id="gameOver" class="game-status game-over">GAME OVER</div>
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn"><i class="fas fa-play"></i> Start</button>
+            <div class="keyboard-shortcuts">
+                <span class="key">↑</span><span class="key">↓</span><span class="key">←</span><span class="key">→</span> Move 
+                <span class="key">P</span> Pause
+                <span class="key">R</span> Restart
+            </div>
+        </div>
+        
+        <div class="sidebar">
+            <div class="fruit-guide">
+                <h3><i class="fas fa-apple-alt"></i> Fruit Types:</h3>
+                <ul>
+                    <li><span class="fruit-dot regular"></span> Regular - 10 points</li>
+                    <li><span class="fruit-dot bonus"></span> Bonus - 30 points</li>
+                    <li><span class="fruit-dot super"></span> Super - 50 points</li>
+                    <li><span class="fruit-dot mega"></span> Mega - 100 points</li>
+                    <li><span class="fruit-dot multiplier"></span> Multiplier - ×5 points</li>
+                </ul>
+                <p><strong><i class="fas fa-lightbulb"></i> Tip:</strong> When a multiplier appears, decide if you want to get it first, then eat a fruit. Multipliers last only 3 seconds!</p>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <p>Created with ❤️ | <a href="https://github.com/sunnyhaladker13/snake" target="_blank">View on GitHub</a></p>
+    </footer>
+    <script src="game.js"></script>
+</body>
+</html>
