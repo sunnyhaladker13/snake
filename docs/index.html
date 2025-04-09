@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Snake Game</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,10 +24,10 @@
             
             <!-- Add tap zones for directional control -->
             <div class="tap-controls">
-                <div id="tapUp" class="tap-zone tap-up"></div>
-                <div id="tapDown" class="tap-zone tap-down"></div>
-                <div id="tapLeft" class="tap-zone tap-left"></div>
-                <div id="tapRight" class="tap-zone tap-right"></div>
+                <div id="tapUp" class="tap-zone tap-up" aria-label="Tap to move up"></div>
+                <div id="tapDown" class="tap-zone tap-down" aria-label="Tap to move down"></div>
+                <div id="tapLeft" class="tap-zone tap-left" aria-label="Tap to move left"></div>
+                <div id="tapRight" class="tap-zone tap-right" aria-label="Tap to move right"></div>
             </div>
             
             <!-- Add swipe indicator -->
@@ -40,7 +40,7 @@
             <div class="controls">
                 <button id="startBtn" class="main-btn"><i class="fas fa-play"></i> Start</button>
                 <button id="restartBtn" class="secondary-btn"><i class="fas fa-redo-alt"></i></button>
-                <button id="muteBtn" class="secondary-btn"><i class="fas fa-volume-up"></i></button>
+                <!-- Remove mute button -->
             </div>
             
             <!-- Remove d-pad controls -->
@@ -64,15 +64,32 @@
             </div>
             
             <div id="keysGuide" class="keyboard-tip">
-                <span class="key">↑</span><span class="key">↓</span><span class="key">←</span><span class="key">→</span> Move 
+                <span class="key">↑</span><span class="key">↓</span><span class="key">←</span><span class="key">→</span> 
+                or 
+                <span class="key">W</span><span class="key">S</span><span class="key">A</span><span class="key">D</span> Move 
                 <span class="key">P</span> Pause
                 <span class="key">R</span> Restart
             </div>
         </div>
+        
+        <!-- Add mobile footer inside the container -->
+        <div class="mobile-footer">
+            <p>Created by sunny | <a href="https://www.linkedin.com/in/sunnyhaladker/" target="_blank">LinkedIn</a></p>
+        </div>
     </div>
     
+    <!-- Update mobile instructions overlay to match neo-brutalist style -->
+    <div id="mobileInstructions" class="mobile-instructions">
+        <button id="closeInstructions" class="close-btn">&times;</button>
+        <h3>Mobile Controls</h3>
+        <p><strong>• TAP</strong> on the canvas to start the game</p>
+        <p><strong>• SWIPE</strong> in any direction to move the snake</p>
+        <p><strong>• TAP</strong> the sides of the screen to change direction</p>
+    </div>
+    
+    <!-- Keep regular footer for desktop -->
     <footer>
-        <p>Created by sunny | <a href="https://github.com/sunnyhaladker13/snake" target="_blank">GitHub</a></p>
+        <p>Created by sunny | <a href="https://www.linkedin.com/in/sunnyhaladker/" target="_blank">LinkedIn</a></p>
     </footer>
     
     <script src="js/snake-neo-design.js"></script>
@@ -87,6 +104,20 @@
             
             this.classList.toggle('active');
             document.getElementById('keysGuideBtn').classList.remove('active');
+            
+            // If on mobile, add backdrop and make it dismissable by clicking outside
+            if (window.innerWidth < 768) {
+                document.body.classList.toggle('modal-open');
+                
+                // If opening the guide, add click outside listener
+                if (fruitGuide.classList.contains('show')) {
+                    setTimeout(() => {
+                        document.addEventListener('click', closeGuidesOnClickOutside);
+                    }, 100);
+                } else {
+                    document.removeEventListener('click', closeGuidesOnClickOutside);
+                }
+            }
         });
         
         document.getElementById('keysGuideBtn').addEventListener('click', function() {
@@ -98,6 +129,74 @@
             
             this.classList.toggle('active');
             document.getElementById('fruitGuideBtn').classList.remove('active');
+            
+            // If on mobile, add backdrop and make it dismissable by clicking outside
+            if (window.innerWidth < 768) {
+                document.body.classList.toggle('modal-open');
+                
+                // If opening the guide, add click outside listener
+                if (keysGuide.classList.contains('show')) {
+                    setTimeout(() => {
+                        document.addEventListener('click', closeGuidesOnClickOutside);
+                    }, 100);
+                } else {
+                    document.removeEventListener('click', closeGuidesOnClickOutside);
+                }
+            }
+        });
+        
+        // Function to close guides when clicking outside
+        function closeGuidesOnClickOutside(e) {
+            const fruitGuide = document.getElementById('fruitGuide');
+            const keysGuide = document.getElementById('keysGuide');
+            
+            // If click is outside the guides, close them
+            if (!fruitGuide.contains(e.target) && 
+                !keysGuide.contains(e.target) && 
+                !e.target.classList.contains('guide-toggle-btn')) {
+                
+                fruitGuide.classList.remove('show');
+                keysGuide.classList.remove('show');
+                document.getElementById('fruitGuideBtn').classList.remove('active');
+                document.getElementById('keysGuideBtn').classList.remove('active');
+                document.body.classList.remove('modal-open');
+                document.removeEventListener('click', closeGuidesOnClickOutside);
+            }
+        }
+        
+        // Make sure guides are properly sized on rotation
+        window.addEventListener('resize', function() {
+            if (window.innerWidth < 768) {
+                const fruitGuide = document.getElementById('fruitGuide');
+                const keysGuide = document.getElementById('keysGuide');
+                
+                // If any guide is open, make sure it's centered
+                if (fruitGuide.classList.contains('show') || keysGuide.classList.contains('show')) {
+                    // Slight delay to let the resize complete
+                    setTimeout(() => {
+                        if (fruitGuide.classList.contains('show')) {
+                            fruitGuide.style.maxHeight = (window.innerHeight * 0.7) + 'px';
+                        }
+                        if (keysGuide.classList.contains('show')) {
+                            keysGuide.style.maxHeight = (window.innerHeight * 0.7) + 'px';
+                        }
+                    }, 100);
+                }
+            }
+        });
+        
+        // Add close button functionality for mobile instructions
+        document.getElementById('closeInstructions').addEventListener('click', function() {
+            document.getElementById('mobileInstructions').style.display = 'none';
+            localStorage.setItem('mobileInstructionsShown', 'true');
+        });
+        
+        // Check if we should show mobile instructions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Only show instructions if they haven't been dismissed
+            if (localStorage.getItem('mobileInstructionsShown')) {
+                document.getElementById('mobileInstructions').style.display = 'none';
+            }
         });
     </script>
     <script src="game.js"></script>

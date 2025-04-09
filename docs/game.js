@@ -37,18 +37,6 @@ const multiplierValue = 5; // 5x points multiplier
 let interpolationFactor = 0;
 const INTERPOLATION_SPEED = 0.2; // Controls how fast the snake moves visually
 
-// Sound effects
-const sounds = {
-    eat: new Audio('sounds/eat.mp3'),
-    bonus: new Audio('sounds/bonus.mp3'),
-    multiplier: new Audio('sounds/multiplier.mp3'),
-    gameOver: new Audio('sounds/game-over.mp3')
-};
-
-// Sound control variables
-let isMuted = false;
-const muteBtn = document.getElementById('muteBtn');
-
 // Touch control buttons
 const upBtn = document.getElementById('upBtn');
 const leftBtn = document.getElementById('leftBtn');
@@ -67,65 +55,71 @@ restartBtn.addEventListener('click', () => {
     startGame();
 });
 
-// Play sound helper
-function playSound(sound) {
-    if (sounds[sound] && !isMuted) {
-        // Stop the sound if it's already playing
-        sounds[sound].currentTime = 0;
-        sounds[sound].play();
+// First, let's add a debug utility function to help diagnose the issue
+function debugSnake(label) {
+    console.log(`%c[${label}] Snake length: ${snake?.length || 0}`, "color: blue; font-weight: bold");
+    if (snake && Array.isArray(snake) && snake.length > 0) {
+        console.log("Head:", snake[0], "Last segment:", snake[snake.length-1]);
     }
 }
 
-// Toggle mute function
-function toggleMute() {
-    isMuted = !isMuted;
-    muteBtn.innerHTML = isMuted ? 
-        '<i class="fas fa-volume-mute"></i>' : 
-        '<i class="fas fa-volume-up"></i>';
+// Add this utility function to force reset the snake state
+function forceResetSnake() {
+    const gridCellsX = Math.floor(canvas.width / gridSize);
+    const gridCellsY = Math.floor(canvas.height / gridSize);
+    const startX = Math.floor(gridCellsX / 3) * gridSize;
+    const startY = Math.floor(gridCellsY / 2) * gridSize;
+    
+    // Create a completely fresh snake with exactly 2 segments
+    return [
+        { x: startX, y: startY },             // Head
+        { x: startX - gridSize, y: startY }   // Tail
+    ];
 }
 
-// Add mute button event listener
-muteBtn.addEventListener('click', toggleMute);
-
-// Function to start the game
+// Replace the startGame function completely
 function startGame() {
-    if (gameRunning && !gamePaused) return; // Prevent starting multiple game loops
+    // Always stop any existing game first
+    stopGame();
     
-    if (gamePaused) {
-        // If game was paused, just resume it
-        gamePaused = false;
-        requestAnimationFrame(gameLoop);
-        updateStartButton('pause');
-        updatePauseDisplay();
-        return;
-    }
-    
-    // Starting a new game
+    // Reset game state
     gameRunning = true;
     gamePaused = false;
     score = 0;
     
-    // Initialize snake with two segments for smooth animation from the start
-    snake = [
-        { x: gridSize * 5, y: gridSize * 5 },          // Head
-        { x: gridSize * 4, y: gridSize * 5 }           // Initial tail segment
-    ];
+    // Force reset the snake to exactly 2 segments
+    snake = forceResetSnake();
     
+    // Reset direction - always start moving right
     dx = gridSize;
     dy = 0;
     directionQueue = [];
+    
+    // Clear any food or multiplier
+    food = null;
+    multiplierFruit = null;
+    if (multiplierFruitTimer) {
+        clearTimeout(multiplierFruitTimer);
+        multiplierFruitTimer = null;
+    }
+    
+    // Generate new food
     spawnFood();
     updateScore();
-    gameSpeed = 120; // Start with a slower initial speed (was 100)
+    gameSpeed = 120;
     
-    // Use requestAnimationFrame with properly initialized timing variables
-    if (gameInterval) clearInterval(gameInterval);
+    // Reset timing variables
     lastFrameTime = 0;
     lastMoveTime = 0;
     interpolationFactor = 0;
-    requestAnimationFrame(gameLoop);
     
+    // Start the game loop
+    requestAnimationFrame(gameLoop);
     updateStartButton('pause');
+    
+    // Hide game over message if it was visible
+    const gameOverElement = document.getElementById('gameOver');
+    if (gameOverElement) gameOverElement.style.display = 'none';
 }
 
 // Function to stop the game
@@ -198,6 +192,18 @@ startBtn.addEventListener('click', () => {
 
 // Function to draw the snake with neo-brutalist design
 function drawSnake() {
+    // Safety check
+    if (!snake || !Array.isArray(snake) || snake.length === 0) {
+        console.error("Cannot draw snake: invalid snake data", snake);
+        return;
+    }
+    
+    // Extra safety - trim if too long
+    if (snake.length > 100) {
+        console.warn("Snake too long in drawing function, trimming");
+        snake = snake.slice(0, 100);
+    }
+    
     // Get the current design
     const design = window.getSnakeTheme ? window.getSnakeTheme() : {
         head: '#FF5F1F',
@@ -234,14 +240,14 @@ function drawSnake() {
         
         // Add black border for contrast
         ctx.strokeStyle = 'black';
-        ctx.lineWidth = design.borderWidth || 2;
+        ctx.lineWidth = (design.borderWidth || 2) * scaleFactor;
         ctx.stroke();
         
         // Add inner pattern for more brutalist aesthetic
         if (i % 2 === 0) { // Alternate pattern
             ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
             ctx.beginPath();
-            ctx.rect(drawX + 5, drawY + 5, gridSize - 10, gridSize - 10);
+            ctx.rect(drawX + gridSize * 0.25, drawY + gridSize * 0.25, gridSize * 0.5, gridSize * 0.5);
             ctx.fill();
         }
     }
@@ -290,7 +296,7 @@ function drawSnake() {
     
     // Draw a glow effect for the head - neo-brutalist style has bold shadows
     ctx.shadowColor = design.headGlow || '#FF303F';
-    ctx.shadowBlur = design.glowStrength || 12; // Stronger glow
+    ctx.shadowBlur = (design.glowStrength || 12) * scaleFactor; // Stronger glow
     
     // Head style from design
     ctx.fillStyle = design.head || '#FF5F1F';
@@ -302,7 +308,7 @@ function drawSnake() {
     
     // Add black border
     ctx.strokeStyle = 'black';
-    ctx.lineWidth = design.borderWidth + 1 || 3; // Thicker border for head
+    ctx.lineWidth = ((design.borderWidth || 2) + 1) * scaleFactor; // Thicker border for head
     ctx.stroke();
     
     // Reset shadow
@@ -311,12 +317,12 @@ function drawSnake() {
     // Draw inner pattern for the head
     ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
     ctx.beginPath();
-    ctx.rect(drawX + 3, drawY + 3, gridSize - 6, gridSize - 6);
+    ctx.rect(drawX + gridSize * 0.15, drawY + gridSize * 0.15, gridSize * 0.7, gridSize * 0.7);
     ctx.fill();
     
     // Determine eye position based on direction
-    const eyeSize = 3.5;
-    const eyeOffset = 4.5;
+    const eyeSize = 3.5 * scaleFactor;
+    const eyeOffset = 4.5 * scaleFactor;
     
     // Left eye
     let leftEyeX, leftEyeY;
@@ -348,8 +354,8 @@ function drawSnake() {
     // Draw eye sockets - dark circles
     ctx.fillStyle = design.eyeSocket || '#000000';
     ctx.beginPath();
-    ctx.arc(leftEyeX, leftEyeY, eyeSize + 1, 0, Math.PI * 2);
-    ctx.arc(rightEyeX, rightEyeY, eyeSize + 1, 0, Math.PI * 2);
+    ctx.arc(leftEyeX, leftEyeY, eyeSize + scaleFactor, 0, Math.PI * 2);
+    ctx.arc(rightEyeX, rightEyeY, eyeSize + scaleFactor, 0, Math.PI * 2);
     ctx.fill();
     
     // Draw eyes - white circles
@@ -361,11 +367,11 @@ function drawSnake() {
     
     // Draw pupils with a brutalist harsh glow
     ctx.shadowColor = design.pupilGlow || '#FFFC31';
-    ctx.shadowBlur = 8; // Dramatic glow
+    ctx.shadowBlur = 8 * scaleFactor; // Dramatic glow
     ctx.fillStyle = 'black';
     
     // Calculate pupil position - makes the snake look in the direction it's moving
-    const pupilShift = 1;
+    const pupilShift = 1 * scaleFactor;
     let pupilOffsetX = 0;
     let pupilOffsetY = 0;
     
@@ -415,7 +421,7 @@ function drawFood() {
     // Add glow for neo-brutalist dramatic effect if enabled in design
     if (design.foodGlow) {
         ctx.shadowColor = foodColor;
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = 10 * scaleFactor;
     }
     
     // Neo-brutalist food - angular shapes instead of circles
@@ -431,7 +437,7 @@ function drawFood() {
     
     // Add border for neo-brutalist look
     ctx.strokeStyle = 'black';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2 * scaleFactor;
     ctx.stroke();
     ctx.restore();
     
@@ -453,7 +459,7 @@ function drawFood() {
         
         // Add glow
         ctx.shadowColor = '#FF00FF';
-        ctx.shadowBlur = 12;
+        ctx.shadowBlur = 12 * scaleFactor;
         
         ctx.beginPath();
         ctx.fillStyle = '#FF00FF';
@@ -483,7 +489,7 @@ function drawFood() {
         
         // Add black border
         ctx.strokeStyle = 'black';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2 * scaleFactor;
         ctx.stroke();
         
         ctx.shadowBlur = 0;
@@ -492,6 +498,12 @@ function drawFood() {
 
 // Helper function to check if a position is occupied by the snake
 function isPositionOnSnake(x, y) {
+    // Safety check
+    if (!snake || !Array.isArray(snake)) {
+        console.error("Snake is not an array in isPositionOnSnake check");
+        return false;
+    }
+    
     for (let i = 0; i < snake.length; i++) {
         if (snake[i].x === x && snake[i].y === y) {
             return true;
@@ -500,42 +512,55 @@ function isPositionOnSnake(x, y) {
     return false;
 }
 
-// Function to spawn food
+// Replace spawnFood function with this fixed version
 function spawnFood() {
-    // Calculate actual available tiles based on canvas size
-    const tilesX = Math.floor(canvas.width / gridSize);
-    const tilesY = Math.floor(canvas.height / gridSize);
+    const gridCellsX = Math.floor(canvas.width / gridSize);
+    const gridCellsY = Math.floor(canvas.height / gridSize);
     
-    // First, create an array of all possible positions
-    let availablePositions = [];
+    // Find all positions that aren't occupied by snake or multiplier
+    const availablePositions = [];
     
-    for (let x = 0; x < tilesX; x++) {
-        for (let y = 0; y < tilesY; y++) {
+    for (let x = 0; x < gridCellsX; x++) {
+        for (let y = 0; y < gridCellsY; y++) {
             const posX = x * gridSize;
             const posY = y * gridSize;
             
-            // Check if this position is free (not occupied by snake or multiplier)
-            if (!isPositionOnSnake(posX, posY) && 
-                !(multiplierFruit && multiplierFruit.x === posX && multiplierFruit.y === posY)) {
+            // Skip positions occupied by snake
+            let occupied = false;
+            for (let i = 0; i < snake.length; i++) {
+                if (snake[i].x === posX && snake[i].y === posY) {
+                    occupied = true;
+                    break;
+                }
+            }
+            
+            // Skip positions occupied by multiplier
+            if (!occupied && multiplierFruit && 
+                multiplierFruit.x === posX && 
+                multiplierFruit.y === posY) {
+                occupied = true;
+            }
+            
+            // Add available positions
+            if (!occupied) {
                 availablePositions.push({ x: posX, y: posY });
             }
         }
     }
     
-    // If no positions available, the game is won (snake fills the entire grid)
+    // Handle case where no positions are available
     if (availablePositions.length === 0) {
-        console.log("No available positions for food - game won!");
+        console.log("No positions available for food - game won!");
         stopGame();
         return;
     }
     
-    // Pick a random position from available ones
-    const randomPosition = availablePositions[Math.floor(Math.random() * availablePositions.length)];
-    
-    // Pick a fruit type based on probability
-    let random = Math.random();
-    let cumulativeProbability = 0;
+    // Select random position and fruit type
+    const randomPos = availablePositions[Math.floor(Math.random() * availablePositions.length)];
     let selectedFruit = fruitTypes[0]; // Default to regular
+    
+    const random = Math.random();
+    let cumulativeProbability = 0;
     
     for (const fruit of fruitTypes) {
         cumulativeProbability += fruit.probability;
@@ -545,22 +570,23 @@ function spawnFood() {
         }
     }
     
-    food = { 
-        x: randomPosition.x, 
-        y: randomPosition.y, 
+    // Create food object with EXACT grid-aligned coordinates
+    food = {
+        x: randomPos.x,
+        y: randomPos.y,
         color: selectedFruit.color,
         points: selectedFruit.points,
         type: selectedFruit.type
     };
     
-    console.log(`Food spawned at: x=${food.x}, y=${food.y}, type=${food.type}`);
+    console.log(`New food spawned at (${food.x},${food.y}), type: ${food.type}`);
 }
 
 // Function to spawn multiplier fruit
 function spawnMultiplierFruit() {
     if (multiplierFruit) return; // Already exists
     
-    // Calculate actual available tiles based on canvas size
+    // Calculate actual available tiles based on current canvas size
     const tilesX = Math.floor(canvas.width / gridSize);
     const tilesY = Math.floor(canvas.height / gridSize);
     
@@ -574,8 +600,8 @@ function spawnMultiplierFruit() {
             
             // Check if this position is free (not occupied by snake or food)
             if (!isPositionOnSnake(posX, posY) && 
-                !(food.x === posX && food.y === posY)) {
-                availablePositions.push({ x: posX, posY });
+                !(food && food.x === posX && food.y === posY)) {
+                availablePositions.push({ x: posX, y: posY });
             }
         }
     }
@@ -589,8 +615,12 @@ function spawnMultiplierFruit() {
     // Pick a random position from available ones
     const randomPosition = availablePositions[Math.floor(Math.random() * availablePositions.length)];
     
-    multiplierFruit = { x: randomPosition.x, y: randomPosition.y };
-    console.log(`Multiplier spawned at: x=${multiplierFruit.x}, y=${multiplierFruit.y}`);
+    multiplierFruit = { 
+        x: randomPosition.x, 
+        y: randomPosition.y 
+    };
+    
+    console.log(`Multiplier spawned at: x=${multiplierFruit.x}, y=${randomPosition.y}, grid: ${gridSize}px`);
     
     // Remove multiplier fruit after its duration
     if (multiplierFruitTimer) clearTimeout(multiplierFruitTimer);
@@ -599,17 +629,21 @@ function spawnMultiplierFruit() {
     }, multiplierDuration);
 }
 
-// Function to handle direction changes
+// Function to handle direction changes - fix keyboard controls for desktop
 function changeDirection(event) {
     if (!gameRunning || gamePaused) return;
     
-    const keyPressed = event.keyCode;
+    // Make sure we're recognizing key codes properly
+    const key = event.key || event.keyCode;
     
-    if (keyPressed === 37) handleDirection('left');      // Left arrow
-    else if (keyPressed === 38) handleDirection('up');   // Up arrow
-    else if (keyPressed === 39) handleDirection('right'); // Right arrow
-    else if (keyPressed === 40) handleDirection('down'); // Down arrow
-    else if (keyPressed === 80) togglePause();           // P key
+    // Handle both key codes and key names for better compatibility
+    // Add WASD controls alongside arrow keys
+    if (key === 'ArrowLeft' || key === 37 || key === 'a' || key === 'A' || key === 65) handleDirection('left');      // Left arrow or A
+    else if (key === 'ArrowUp' || key === 38 || key === 'w' || key === 'W' || key === 87) handleDirection('up');     // Up arrow or W
+    else if (key === 'ArrowRight' || key === 39 || key === 'd' || key === 'D' || key === 68) handleDirection('right'); // Right arrow or D
+    else if (key === 'ArrowDown' || key === 40 || key === 's' || key === 'S' || key === 83) handleDirection('down'); // Down arrow or S
+    else if (key === 'p' || key === 'P' || key === 80) togglePause();    // P key
+    else if (key === 'r' || key === 'R' || key === 82) startGame();      // R key
 }
 
 // Function to process direction queue
@@ -700,68 +734,90 @@ function gameLoop(timestamp) {
     lastFrameTime = timestamp;
 }
 
-// Function to move the snake
+// Replace moveSnake function with this fixed version
 function moveSnake() {
-    const head = { x: snake[0].x + dx, y: snake[0].y + dy };
-    
-    // Wrap around the edges
-    if (head.x < 0) head.x = canvas.width - gridSize;
-    else if (head.x >= canvas.width) head.x = 0;
-    if (head.y < 0) head.y = canvas.height - gridSize;
-    else if (head.y >= canvas.height) head.y = 0;
-    
-    // Ensure head coordinates are aligned to grid
-    head.x = Math.floor(head.x / gridSize) * gridSize;
-    head.y = Math.floor(head.y / gridSize) * gridSize;
-    
-    snake.unshift(head); // Add new head to the snake
-
-    // Check if the snake eats the multiplier fruit with improved detection
-    if (multiplierFruit && 
-        Math.abs(head.x - multiplierFruit.x) < gridSize/2 && 
-        Math.abs(head.y - multiplierFruit.y) < gridSize/2) {
-        playSound('multiplier');
-        // Multiply the points of the next food
-        food.points *= multiplierValue;
-        
-        // Clear the multiplier fruit
-        multiplierFruit = null;
-        clearTimeout(multiplierFruitTimer);
-        
-        console.log("Multiplier taken! Next fruit worth x5 points");
+    // Ensure snake exists and has correct format
+    if (!snake || !Array.isArray(snake) || snake.length < 1) {
+        console.error("Invalid snake in moveSnake, resetting...");
+        snake = forceResetSnake();
+        return;
     }
-
-    // Check if the snake eats the regular food with improved detection
-    if (Math.abs(head.x - food.x) < gridSize/2 && Math.abs(head.y - food.y) < gridSize/2) {
-        playSound(food.type === 'bonus' ? 'bonus' : 'eat');
-        // Add points
+    
+    // Get the head position and calculate new head
+    const head = snake[0];
+    const newHead = { 
+        x: head.x + dx, 
+        y: head.y + dy 
+    };
+    
+    // Handle edge wrapping
+    const gridCellsX = Math.floor(canvas.width / gridSize);
+    const gridCellsY = Math.floor(canvas.height / gridSize);
+    
+    if (newHead.x < 0) newHead.x = (gridCellsX - 1) * gridSize;
+    else if (newHead.x >= gridCellsX * gridSize) newHead.x = 0;
+    
+    if (newHead.y < 0) newHead.y = (gridCellsY - 1) * gridSize;
+    else if (newHead.y >= gridCellsY * gridSize) newHead.y = 0;
+    
+    // Ensure new head is aligned to the grid
+    newHead.x = Math.floor(newHead.x / gridSize) * gridSize;
+    newHead.y = Math.floor(newHead.y / gridSize) * gridSize;
+    
+    // Add the new head to the snake
+    snake.unshift(newHead);
+    
+    // Food collection logic - Debug this part carefully
+    let foodEaten = false;
+    
+    // Check if the new head position matches the food position EXACTLY
+    if (food && newHead.x === food.x && newHead.y === food.y) {
+        foodEaten = true;
+        
+        // Award points
         score += food.points;
         updateScore();
         updateGameSpeed();
         
-        // Reset food points if it was multiplied
+        // Generate new food (keep the tail since we ate food)
         spawnFood();
-        
-        // For debugging
-        console.log("Food eaten! New score: " + score);
     } else {
-        snake.pop(); // Remove the tail if no food is eaten
+        // Remove the tail if no food was eaten
+        snake.pop();
+    }
+    
+    // Check if the new head position matches the multiplier position
+    if (multiplierFruit && newHead.x === multiplierFruit.x && newHead.y === multiplierFruit.y) {
+        
+        // Apply multiplier effect
+        if (food) food.points *= multiplierValue;
+        
+        // Remove the multiplier
+        multiplierFruit = null;
+        if (multiplierFruitTimer) {
+            clearTimeout(multiplierFruitTimer);
+            multiplierFruitTimer = null;
+        }
     }
 }
 
 // Function to check for collisions
 function checkCollision() {
+    // Safety check
+    if (!snake || !Array.isArray(snake) || snake.length < 2) {
+        return false;
+    }
+    
     const head = snake[0];
-
-    // Check self-collision (skip head)
+    
+    // Check for self-collision (skip the head)
     for (let i = 1; i < snake.length; i++) {
         if (head.x === snake[i].x && head.y === snake[i].y) {
-            playSound('gameOver');
             return true;
         }
     }
-
-    return false; // No collision
+    
+    return false;
 }
 
 // Enhanced function for updating the score with animation
@@ -774,81 +830,63 @@ function updateScore() {
 // Event listener for key presses
 document.addEventListener('keydown', changeDirection);
 
-// Initialize the game
-const canvasSize = 380;  // Increased from 320 to 380
-
+// Initialize the game with dynamic canvas size
 window.onload = function() {
-    // Resize canvas for better fit
-    canvas.width = canvasSize;
-    canvas.height = canvasSize;
+    console.log("Game initializing...");
     
-    // Recalculate tileCount based on actual canvas size
-    const tileCount = Math.floor(canvasSize / gridSize);
-    
-    // Hide game status messages at initialization
-    const gameOverElement = document.getElementById('gameOver');
-    gameOverElement.style.display = 'none';
-    
-    const pauseElement = document.getElementById('gamePaused');
-    pauseElement.style.display = 'none';
-    
-    // Set up the game restart logic
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'r' || e.key === 'R') {
-            if (!gameRunning) {
-                startGame();
-            }
+    try {
+        // Detect if user is on mobile
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        // Show instructions for mobile users if not already seen
+        if (isMobile && !localStorage.getItem('mobileInstructionsShown')) {
+            document.getElementById('mobileInstructions').style.display = 'block';
         }
-    });
-    
-    // Initial rendering
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawGrid();
-    
-    // Initialize snake with two segments for initial demo
-    snake = [
-        { x: gridSize * 5, y: gridSize * 5 },          // Head
-        { x: gridSize * 4, y: gridSize * 5 }           // Initial tail segment
-    ];
-    
-    // Create initial food using our safer spawnFood function
-    spawnFood();
-    
-    drawSnake();
-    drawFood();
-    
-    // Debug visualization disabled in production
-    // Uncomment for debugging: drawDebugInfo();
-    
-    // Initialize button state
-    updateStartButton('start');
-    
-    // Log initial state for debugging
-    console.log(`Canvas size: ${canvas.width}x${canvas.height}, GridSize: ${gridSize}, TileCount: ${tileCount}`);
-    console.log(`Initial snake position: x=${snake[0].x}, y=${snake[0].y}`);
-    console.log(`Initial food position: x=${food.x}, y=${food.y}`);
-    
-    // Set up touch controls
-    setupTouchControls();
-    
-    // Test device type and set up mobile controls
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
-    if (isMobile) {
-        // Enable tap controls for mobile
-        const tapControls = document.querySelector('.tap-controls');
-        if (tapControls) tapControls.style.display = 'block';
-    }
+        
+        // First call resize to initialize canvas and grid size
+        resizeGameCanvas();
+        
+        // Set up resize event listeners
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(resizeGameCanvas, 250);
+        });
+        window.addEventListener('orientationchange', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(resizeGameCanvas, 250);
+        });
 
-    // Set viewport height to ensure no scrolling
-    document.documentElement.style.height = '100%';
-    document.body.style.height = '100%';
-    
-    // For extremely small screens, hide guides completely
-    const viewportHeight = window.innerHeight;
-    if (viewportHeight < 650) {
-        const guideToggle = document.querySelector('.guide-toggle');
-        if (guideToggle) guideToggle.style.display = 'none';
+        // Hide game status messages
+        const gameOverElement = document.getElementById('gameOver');
+        if (gameOverElement) gameOverElement.style.display = 'none';
+        
+        const pauseElement = document.getElementById('gamePaused');
+        if (pauseElement) pauseElement.style.display = 'none';
+        
+        // Set up keyboard controls - make sure we're adding proper event listeners
+        document.addEventListener('keydown', changeDirection);
+        
+        // Initialize the snake with exactly 2 segments
+        snake = forceResetSnake();
+        
+        // Set up initial food
+        spawnFood();
+        
+        // Draw the initial state
+        clearCanvas();
+        drawGrid();
+        drawSnake();
+        drawFood();
+        
+        // Set up touch controls
+        setupTouchControls();
+        updateStartButton('start');
+        
+        // Console log game readiness
+        console.log(`Game initialized - Canvas: ${canvas.width}x${canvas.height}, Grid: ${gridSize}px`);
+    } catch (error) {
+        console.error("Error during initialization:", error);
     }
 };
 
@@ -856,7 +894,6 @@ window.onload = function() {
 function showGameOver() {
     const gameOverElement = document.getElementById('gameOver');
     gameOverElement.style.display = 'block';
-    playSound('gameOver');
     
     // Highlight the restart button to guide user
     restartBtn.classList.add('highlight-btn');
@@ -879,12 +916,31 @@ function setupTouchControls() {
     const touchArea = document.getElementById('gameCanvas');
     const swipeIndicator = document.getElementById('swipeIndicator');
     
+    // Add tap-to-start functionality for mobile
+    touchArea.addEventListener('touchend', (e) => {
+        // If game is not running, tap anywhere on canvas to start
+        if (!gameRunning) {
+            e.preventDefault();
+            startGame();
+            return;
+        }
+        
+        // Rest of touch handling code for when game is running...
+        if (!startX || !startY) return;
+        
+        // ...existing swipe handling code...
+    });
+    
     // Swipe gesture controls
     let startX, startY;
     const MIN_SWIPE = 30; // Minimum swipe distance
 
     touchArea.addEventListener('touchstart', (e) => {
         e.preventDefault();
+        
+        // If game is not running, just return (the touchend will handle starting)
+        if (!gameRunning) return;
+        
         const touch = e.touches[0];
         startX = touch.clientX;
         startY = touch.clientY;
@@ -932,11 +988,51 @@ function setupTouchControls() {
         startY = null;
     });
     
-    // Set up tap zone controls as alternative to swipes
+    // Enhanced tap zone controls with visual feedback
+    setupTapZoneControls();
+    
+    // Add haptic feedback
+    function vibrateIfPossible() {
+        if ('vibrate' in navigator) {
+            navigator.vibrate(30); // Short vibration for 30ms
+        }
+    }
+}
+
+// Separate function for tap zone controls
+function setupTapZoneControls() {
     const tapUp = document.getElementById('tapUp');
     const tapDown = document.getElementById('tapDown');
     const tapLeft = document.getElementById('tapLeft');
     const tapRight = document.getElementById('tapRight');
+    
+    // Add haptic feedback
+    function vibrateIfPossible() {
+        if ('vibrate' in navigator) {
+            navigator.vibrate(30); // Short vibration for 30ms
+        }
+    }
+    
+    // Helper to add visual feedback to tap zones
+    function addTapFeedback(element) {
+        if (!element) return;
+        
+        ['touchstart', 'touchend', 'touchcancel'].forEach(event => {
+            element.addEventListener(event, (e) => {
+                if (event === 'touchstart') {
+                    element.style.backgroundColor = 'rgba(255, 255, 255, 0.25)';
+                } else {
+                    // Reset after a short delay for visual feedback
+                    setTimeout(() => {
+                        element.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                    }, 150);
+                }
+            });
+        });
+    }
+    
+    // Add visual feedback to all tap zones
+    [tapUp, tapDown, tapLeft, tapRight].forEach(addTapFeedback);
     
     // Add event listeners for tap zones if they exist
     if (tapUp) {
@@ -969,38 +1065,6 @@ function setupTouchControls() {
             vibrateIfPossible();
             handleDirection('right');
         });
-    }
-    
-    // Add haptic feedback
-    function vibrateIfPossible() {
-        if ('vibrate' in navigator) {
-            navigator.vibrate(30); // Short vibration for 30ms
-        }
-    }
-}
-
-// Helper function to handle direction changes
-function handleDirection(dir) {
-    if (!gameRunning || gamePaused) return;
-    
-    const goingUp = dy === -gridSize;
-    const goingDown = dy === gridSize;
-    const goingRight = dx === gridSize;
-    const goingLeft = dx === -gridSize;
-    
-    switch(dir) {
-        case 'up':
-            if (!goingDown) directionQueue.push({ dx: 0, dy: -gridSize });
-            break;
-        case 'down':
-            if (!goingUp) directionQueue.push({ dx: 0, dy: gridSize });
-            break;
-        case 'left':
-            if (!goingRight) directionQueue.push({ dx: -gridSize, dy: 0 });
-            break;
-        case 'right':
-            if (!goingLeft) directionQueue.push({ dx: gridSize, dy: 0 });
-            break;
     }
 }
 
@@ -1036,11 +1100,12 @@ function drawGrid() {
     
     // Add black borders to corner elements
     ctx.strokeStyle = 'black';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2 * scaleFactor;
     ctx.strokeRect(0, 0, cornerSize, cornerSize);
     ctx.strokeRect(canvas.width - cornerSize, 0, cornerSize, cornerSize);
     ctx.strokeRect(0, canvas.height - cornerSize, cornerSize, cornerSize);
     ctx.strokeRect(canvas.width - cornerSize, canvas.height - cornerSize, cornerSize, cornerSize);
+    
 }
 
 // Add debugging visualizer to show hit areas (only used when explicitly called)
@@ -1076,5 +1141,632 @@ function drawDebugInfo() {
         ctx.lineWidth = 1;
         ctx.strokeRect(multiplierFruit.x, multiplierFruit.y, gridSize, gridSize);
         ctx.fillText(`(${multiplierFruit.x},${multiplierFruit.y})`, multiplierFruit.x, multiplierFruit.y - 2);
+    }
+}
+
+// Add a variable to track the base grid size and dynamic scale factor
+let baseGridSize = 20; // Original grid size
+let scaleFactor = 1; // Will be updated when canvas is resized
+
+// Fix the resizeGameCanvas function
+function resizeGameCanvas() {
+    const gameArea = document.querySelector('.game-area');
+    const tapControls = document.querySelector('.tap-controls');
+
+    // Check if gameArea exists before proceeding
+    if (!gameArea) {
+        console.warn("Game area not found. Canvas may not resize correctly.");
+        return;
+    }
+
+    const availableWidth = gameArea.clientWidth;
+    const availableHeight = gameArea.clientHeight;
+
+    // Set canvas dimensions to use all available space
+    canvas.width = availableWidth * 0.95; // Use 95% of available width for some margin
+    canvas.height = availableHeight * 0.95; // Use 95% of available height for some margin
+
+    // Calculate grid size based on the smaller dimension
+    // This ensures grid cells remain square even if canvas is rectangular
+    const smallerDimension = Math.min(canvas.width, canvas.height);
+    const referenceSize = 320;
+    
+    // Calculate a scale factor based on the smaller dimension
+    scaleFactor = smallerDimension / referenceSize;
+    
+    // Calculate grid size - must be an integer to avoid rendering artifacts
+    gridSize = Math.max(Math.round(baseGridSize * scaleFactor), 8);
+    
+    // Ensure tap controls match the size of the canvas
+    if (tapControls) {
+        tapControls.style.width = canvas.width + 'px';
+        tapControls.style.height = canvas.height + 'px';
+        
+        // Center tap controls over the canvas
+        tapControls.style.position = 'absolute';
+        tapControls.style.top = '50%';
+        tapControls.style.left = '50%';
+        tapControls.style.transform = 'translate(-50%, -50%)';
+    }
+    
+    // Recalculate game area dimensions in grid cells
+    const gridCellsX = Math.floor(canvas.width / gridSize);
+    const gridCellsY = Math.floor(canvas.height / gridSize);
+
+    console.log(`Canvas resized to: ${canvas.width}x${canvas.height}, Grid: ${gridSize}px, Cells: ${gridCellsX}x${gridCellsY}`);
+    
+    // Realign existing game elements to the new grid size and canvas dimensions
+    realignGameElements(gridCellsX, gridCellsY);
+    
+    // Redraw the game with updated dimensions
+    if (gameRunning) {
+        clearCanvas();
+        drawGrid();
+        drawFood();
+        drawSnake();
+    } else {
+        // Just initialize the visuals
+        clearCanvas();
+        drawGrid();
+        
+        // CRITICAL FIX: Force snake to be recreated from scratch
+        snake = null;
+        
+        // Initialize snake position based on grid size with exactly 2 segments
+        const centerX = Math.floor(gridCellsX / 3);
+        const centerY = Math.floor(gridCellsY / 2);
+        
+        // Replace snake with a fresh 2-segment snake with explicit coordinates
+        snake = [
+            { x: centerX * gridSize, y: centerY * gridSize },
+            { x: (centerX - 1) * gridSize, y: centerY * gridSize }
+        ];
+        
+        debugSnake("AFTER RESIZE");
+        
+        // Reset position and ensure food is within bounds
+        if (!food || typeof food.x === 'undefined') {
+            food = { 
+                x: (centerX + 5) * gridSize, 
+                y: centerY * gridSize,
+                color: fruitTypes[0].color,
+                points: fruitTypes[0].points,
+                type: fruitTypes[0].type
+            };
+        } else {
+            // Ensure existing food is within boundaries
+            food.x = Math.min(Math.max(0, food.x), (gridCellsX - 1) * gridSize);
+            food.y = Math.min(Math.max(0, food.y), (gridCellsY - 1) * gridSize);
+        }
+        
+        drawSnake();
+        drawFood();
+    }
+}
+
+// Helper function to clear the canvas
+function clearCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+// Fix the realignGameElements function
+function realignGameElements(gridCellsX, gridCellsY) {
+    // If snake doesn't exist or isn't an array, create it
+    if (!snake || !Array.isArray(snake)) {
+        snake = forceResetSnake();
+        return;
+    }
+    
+    // Ensure snake segments are within bounds
+    for (let i = 0; i < snake.length; i++) {
+        // Align to grid
+        snake[i].x = Math.floor(snake[i].x / gridSize) * gridSize;
+        snake[i].y = Math.floor(snake[i].y / gridSize) * gridSize;
+        
+        // Ensure within canvas boundaries
+        snake[i].x = Math.min(Math.max(0, snake[i].x), (gridCellsX - 1) * gridSize);
+        snake[i].y = Math.min(Math.max(0, snake[i].y), (gridCellsY - 1) * gridSize);
+    }
+    
+    // Realign food
+    if (food) {
+        food.x = Math.floor(food.x / gridSize) * gridSize;
+        food.y = Math.floor(food.y / gridSize) * gridSize;
+        food.x = Math.min(Math.max(0, food.x), (gridCellsX - 1) * gridSize);
+        food.y = Math.min(Math.max(0, food.y), (gridCellsY - 1) * gridSize);
+    }
+    
+    // Realign multiplier
+    if (multiplierFruit) {
+        multiplierFruit.x = Math.floor(multiplierFruit.x / gridSize) * gridSize;
+        multiplierFruit.y = Math.floor(multiplierFruit.y / gridSize) * gridSize;
+        multiplierFruit.x = Math.min(Math.max(0, multiplierFruit.x), (gridCellsX - 1) * gridSize);
+        multiplierFruit.y = Math.min(Math.max(0, multiplierFruit.y), (gridCellsY - 1) * gridSize);
+    }
+    
+    // Update movement vectors
+    if (dx !== 0) dx = gridSize * Math.sign(dx);
+    if (dy !== 0) dy = gridSize * Math.sign(dy);
+}
+
+// Updated spawn food function to work with dynamic canvas dimensions
+function spawnFood() {
+    // Calculate grid dimensions based on current canvas size
+    const gridCellsX = Math.floor(canvas.width / gridSize);
+    const gridCellsY = Math.floor(canvas.height / gridSize);
+    
+    // First, create an array of all possible positions
+    let availablePositions = [];
+    
+    for (let x = 0; x < gridCellsX; x++) {
+        for (let y = 0; y < gridCellsY; y++) {
+            const posX = x * gridSize;
+            const posY = y * gridSize;
+            
+            // Check if this position is free (not occupied by snake or multiplier)
+            if (!isPositionOnSnake(posX, posY) && 
+                !(multiplierFruit && multiplierFruit.x === posX && multiplierFruit.y === posY)) {
+                availablePositions.push({ x: posX, y: posY });
+            }
+        }
+    }
+    
+    // If no positions available, the game is won
+    if (availablePositions.length === 0) {
+        console.log("No available positions for food - game won!");
+        stopGame();
+        return;
+    }
+    
+    // Pick a random position from available ones
+    const randomPosition = availablePositions[Math.floor(Math.random() * availablePositions.length)];
+    
+    // Pick a fruit type based on probability
+    let random = Math.random();
+    let cumulativeProbability = 0;
+    let selectedFruit = fruitTypes[0]; // Default to regular
+    
+    for (const fruit of fruitTypes) {
+        cumulativeProbability += fruit.probability;
+        if (random < cumulativeProbability) {
+            selectedFruit = fruit;
+            break;
+        }
+    }
+    
+    food = { 
+        x: randomPosition.x, 
+        y: randomPosition.y, 
+        color: selectedFruit.color,
+        points: selectedFruit.points,
+        type: selectedFruit.type
+    };
+    
+    console.log(`Food spawned at: x=${food.x}, y=${food.y}, type=${food.type}, grid: ${gridSize}px`);
+}
+
+// Updated spawn multiplier fruit to work with dynamic canvas dimensions
+function spawnMultiplierFruit() {
+    if (multiplierFruit) return; // Already exists
+    
+    // Calculate grid dimensions based on current canvas size
+    const gridCellsX = Math.floor(canvas.width / gridSize);
+    const gridCellsY = Math.floor(canvas.height / gridSize);
+    
+    // Create an array of all possible positions
+    let availablePositions = [];
+    
+    for (let x = 0; x < gridCellsX; x++) {
+        for (let y = 0; y < gridCellsY; y++) {
+            const posX = x * gridSize;
+            const posY = y * gridSize;
+            
+            // Check if this position is free (not occupied by snake or food)
+            if (!isPositionOnSnake(posX, posY) && 
+                !(food && food.x === posX && food.y === posY)) {
+                availablePositions.push({ x: posX, y: posY });
+            }
+        }
+    }
+    
+    // If there are no available positions, don't spawn a multiplier
+    if (availablePositions.length === 0) {
+        console.log("No available positions for multiplier fruit");
+        return;
+    }
+    
+    // Pick a random position from available ones
+    const randomPosition = availablePositions[Math.floor(Math.random() * availablePositions.length)];
+    
+    multiplierFruit = { 
+        x: randomPosition.x, 
+        y: randomPosition.y 
+    };
+    
+    console.log(`Multiplier spawned at: x=${multiplierFruit.x}, y=${randomPosition.y}, grid: ${gridSize}px`);
+    
+    // Remove multiplier fruit after its duration
+    if (multiplierFruitTimer) clearTimeout(multiplierFruitTimer);
+    multiplierFruitTimer = setTimeout(() => {
+        multiplierFruit = null;
+    }, multiplierDuration);
+}
+
+// Update move function to handle the boundaries based on current canvas dimensions
+function moveSnake() {
+    const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+    
+    // Wrap around the edges based on current canvas dimensions
+    if (head.x < 0) head.x = Math.floor(canvas.width / gridSize) * gridSize - gridSize;
+    else if (head.x >= canvas.width) head.x = 0;
+    if (head.y < 0) head.y = Math.floor(canvas.height / gridSize) * gridSize - gridSize;
+    else if (head.y >= canvas.height) head.y = 0;
+    
+    // Ensure head coordinates are aligned to grid
+    head.x = Math.floor(head.x / gridSize) * gridSize;
+    head.y = Math.floor(head.y / gridSize) * gridSize;
+    
+    snake.unshift(head); // Add new head to the snake
+    
+    // ...existing collision detection code...
+}
+
+// Update window.onload to use the updated grid size and coordinate properly
+window.onload = function() {
+    console.log("Game initializing...");
+    
+    try {
+        // Clear any existing snake
+        snake = null;
+
+        // First call resize to initialize canvas and grid size
+        resizeGameCanvas();
+        // ...existing code...
+        
+        // Create a new snake with exactly two segments for display
+        const gridCellsX = Math.floor(canvas.width / gridSize);
+        const gridCellsY = Math.floor(canvas.height / gridSize);
+        const startX = Math.floor(gridCellsX / 3) * gridSize;
+        const startY = Math.floor(gridCellsY / 2) * gridSize;
+        
+        snake = [
+            { x: startX, y: startY },              // Head
+            { x: startX - gridSize, y: startY }    // Tail - exactly one segment
+        ];
+        
+        debugSnake("INITIALIZATION");
+        
+        // ...existing code...
+    } catch (error) {
+        console.error("Error during initialization:", error);
+    }
+};
+
+// Fix moveSnake function - completely rewrite this critical function
+function moveSnake() {
+    // Validate snake
+    if (!snake || !Array.isArray(snake) || snake.length === 0) {
+        console.error("Invalid snake in moveSnake");
+        snake = forceResetSnake();
+        return;
+    }
+    
+    // Get current head position
+    const head = snake[0];
+    
+    // Calculate new head position 
+    const newHeadX = head.x + dx;
+    const newHeadY = head.y + dy;
+    
+    // Handle edge wrapping
+    const gridCellsX = Math.floor(canvas.width / gridSize);
+    const gridCellsY = Math.floor(canvas.height / gridSize);
+    
+    let wrappedX = newHeadX;
+    let wrappedY = newHeadY;
+    
+    // Handle horizontal wrapping
+    if (wrappedX < 0) {
+        wrappedX = (gridCellsX - 1) * gridSize;
+    } else if (wrappedX >= gridCellsX * gridSize) {
+        wrappedX = 0;
+    }
+    
+    // Handle vertical wrapping
+    if (wrappedY < 0) {
+        wrappedY = (gridCellsY - 1) * gridSize;
+    } else if (wrappedY >= gridCellsY * gridSize) {
+        wrappedY = 0;
+    }
+    
+    // Create the new head object with exact grid alignment
+    const newHead = {
+        x: Math.floor(wrappedX / gridSize) * gridSize,
+        y: Math.floor(wrappedY / gridSize) * gridSize
+    };
+    
+    // Add the new head to the snake
+    snake.unshift(newHead);
+    
+    // Check for food collision with STRICT equality comparison
+    let foodEaten = false;
+    
+    if (food && newHead.x === food.x && newHead.y === food.y) {
+        foodEaten = true;
+        
+        // Add score
+        score += food.points;
+        updateScore();
+        
+        // Spawn new food
+        spawnFood();
+        
+        // Don't remove tail - snake grows
+    } else {
+        // No food eaten, remove the tail
+        snake.pop();
+    }
+    
+    // Check for multiplier collision with STRICT equality comparison
+    if (multiplierFruit && 
+        newHead.x === multiplierFruit.x && 
+        newHead.y === multiplierFruit.y) {
+        
+        // Apply multiplier to food
+        if (food) {
+            food.points *= multiplierValue;
+        }
+        
+        // Remove multiplier
+        multiplierFruit = null;
+        
+        // Clear timer
+        if (multiplierFruitTimer) {
+            clearTimeout(multiplierFruitTimer);
+            multiplierFruitTimer = null;
+        }
+    }
+}
+
+// Completely replace the spawnFood function
+function spawnFood() {
+    // Safety checks
+    if (!snake || !Array.isArray(snake)) {
+        console.error("Cannot spawn food without snake");
+        snake = forceResetSnake();
+    }
+    
+    // Calculate grid dimensions
+    const gridCellsX = Math.floor(canvas.width / gridSize);
+    const gridCellsY = Math.floor(canvas.height / gridSize);
+    
+    // First, collect all valid positions (not occupied by snake or multiplier)
+    const validPositions = [];
+    
+    // Loop through every cell in the grid
+    for (let x = 0; x < gridCellsX; x++) {
+        for (let y = 0; y < gridCellsY; y++) {
+            // Calculate exact grid-aligned position
+            const posX = x * gridSize;
+            const posY = y * gridSize;
+            
+            // Check if this position is occupied by the snake
+            let occupied = false;
+            for (let i = 0; i < snake.length; i++) {
+                if (snake[i].x === posX && snake[i].y === posY) {
+                    occupied = true;
+                    break;
+                }
+            }
+            
+            // Check if position is occupied by multiplier
+            if (!occupied && multiplierFruit && 
+                multiplierFruit.x === posX && multiplierFruit.y === posY) {
+                occupied = true;
+            }
+            
+            // If not occupied, add to valid positions
+            if (!occupied) {
+                validPositions.push({x: posX, y: posY});
+            }
+        }
+    }
+    
+    // If no valid positions, game is won
+    if (validPositions.length === 0) {
+        console.log("No valid positions for food - game won!");
+        stopGame();
+        return;
+    }
+    
+    // Randomly select a position
+    const randomPosition = validPositions[Math.floor(Math.random() * validPositions.length)];
+    
+    // Randomly select a fruit type based on probability
+    let random = Math.random();
+    let cumulativeProbability = 0;
+    let selectedFruit = fruitTypes[0]; // Default to regular
+    
+    for (const fruit of fruitTypes) {
+        cumulativeProbability += fruit.probability;
+        if (random < cumulativeProbability) {
+            selectedFruit = fruit;
+            break;
+        }
+    }
+    
+    // Create new food object with EXACT grid-aligned coordinates
+    food = {
+        x: randomPosition.x,
+        y: randomPosition.y,
+        color: selectedFruit.color,
+        points: selectedFruit.points,
+        type: selectedFruit.type
+    };
+    
+    console.log(`New food spawned at (${food.x}, ${food.y}), type: ${food.type}`);
+}
+
+// Add key game loop with debugging for every frame
+function gameLoop(timestamp) {
+    if (gamePaused) {
+        if (gameRunning) requestAnimationFrame(gameLoop);
+        return;
+    }
+    
+    // Request next frame
+    requestAnimationFrame(gameLoop);
+    
+    // Update interpolation for smooth movement
+    interpolationFactor = Math.min(1, interpolationFactor + INTERPOLATION_SPEED);
+    
+    // Process game logic at fixed intervals
+    if (timestamp - lastMoveTime >= gameSpeed) {
+        // Process direction queue
+        processDirectionQueue();
+        
+        // Move snake (this is where the critical logic happens)
+        moveSnake();
+        
+        // Check for self-collision
+        if (checkCollision()) {
+            stopGame();
+            showGameOver();
+            return;
+        }
+        
+        // Reset interpolation
+        interpolationFactor = 0;
+        lastMoveTime = timestamp;
+        
+        // Chance to spawn multiplier
+        if (Math.random() < multiplierChance && !multiplierFruit) {
+            spawnMultiplierFruit();
+        }
+    }
+    
+    // Clear and draw
+    clearCanvas();
+    drawGrid();
+    drawSnake();
+    drawFood();
+    
+    // Update frame time
+    lastFrameTime = timestamp;
+}
+
+// Override the startGame function for completely clean initialization
+function startGame() {
+    // Stop any existing game activity
+    stopGame();
+    
+    // Reset game state
+    gameRunning = true;
+    gamePaused = false;
+    score = 0;
+    
+    // Calculate grid dimensions
+    const gridCellsX = Math.floor(canvas.width / gridSize);
+    const gridCellsY = Math.floor(canvas.height / gridSize);
+    
+    // Create a completely fresh snake with exact coordinates
+    const startX = Math.floor(gridCellsX / 3) * gridSize;
+    const startY = Math.floor(gridCellsY / 2) * gridSize;
+    
+    snake = [
+        {x: startX, y: startY},             // Head
+        {x: startX - gridSize, y: startY}   // Body (single segment)
+    ];
+    
+    // Set direction
+    dx = gridSize;
+    dy = 0;
+    
+    // Reset direction queue
+    directionQueue = [];
+    
+    // Clear any existing food or multiplier
+    food = null;
+    multiplierFruit = null;
+    
+    if (multiplierFruitTimer) {
+        clearTimeout(multiplierFruitTimer);
+        multiplierFruitTimer = null;
+    }
+    
+    // Generate new food
+    spawnFood();
+    
+    // Reset UI
+    updateScore();
+    
+    // Set game speed
+    gameSpeed = 120;
+    
+    // Reset timing variables
+    lastFrameTime = 0;
+    lastMoveTime = 0;
+    interpolationFactor = 0;
+    
+    // Start game loop
+    requestAnimationFrame(gameLoop);
+    
+    // Update UI
+    updateStartButton('pause');
+}
+
+// Helper function to handle direction changes - make sure it's working properly
+function handleDirection(dir) {
+    if (!gameRunning || gamePaused) return;
+    
+    const goingUp = dy === -gridSize;
+    const goingDown = dy === gridSize;
+    const goingRight = dx === gridSize;
+    const goingLeft = dx === -gridSize;
+    
+    console.log(`Direction requested: ${dir}, Current direction: dx=${dx}, dy=${dy}`);
+    
+    switch(dir) {
+        case 'up':
+            if (!goingDown) {
+                directionQueue.push({ dx: 0, dy: -gridSize });
+                console.log("Queued UP direction");
+            }
+            break;
+        case 'down':
+            if (!goingUp) {
+                directionQueue.push({ dx: 0, dy: gridSize });
+                console.log("Queued DOWN direction");
+            }
+            break;
+        case 'left':
+            if (!goingRight) {
+                directionQueue.push({ dx: -gridSize, dy: 0 });
+                console.log("Queued LEFT direction");
+            }
+            break;
+        case 'right':
+            if (!goingLeft) {
+                directionQueue.push({ dx: gridSize, dy: 0 });
+                console.log("Queued RIGHT direction");
+            }
+            break;
+    }
+}
+
+// Make sure the process direction queue function is working correctly
+function processDirectionQueue() {
+    if (directionQueue.length > 0) {
+        const newDirection = directionQueue.shift();
+        
+        // Prevent reversing into itself
+        const reverseDirection = dx === -newDirection.dx && dy === -newDirection.dy;
+        
+        if (!reverseDirection) {
+            // Update direction
+            dx = newDirection.dx;
+            dy = newDirection.dy;
+            console.log(`Direction changed to: dx=${dx}, dy=${dy}`);
+        }
     }
 }

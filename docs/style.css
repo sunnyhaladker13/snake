@@ -56,7 +56,7 @@ body::after {
 }
 
 .game-container {
-    width: 95%;
+    width: 100%;
     max-width: 450px;
     background: var(--surface);
     padding: 1rem;
@@ -66,6 +66,8 @@ body::after {
     position: relative;
     margin-bottom: 0;
     transform: rotate(-1deg);
+    display: flex;
+    flex-direction: column;
 }
 
 h1 {
@@ -97,21 +99,29 @@ h1 {
 .game-area {
     position: relative;
     width: 100%;
+    height: 75vh; /* Use viewport height for better screen utilization */
+    min-height: 300px; /* Minimum height to ensure playability */
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin: 0 auto;
+    padding: 0;
+    overflow: hidden; /* Prevent scrollbars if canvas is slightly larger */
 }
 
 canvas {
-    background: #000;
-    border: var(--border-thickness) solid var(--text);
     display: block;
     margin: 0 auto;
-    width: 100%;
-    max-width: 380px; /* Increased from 320px */
+    background: #000;
+    border: var(--border-thickness) solid var(--text);
+    width: auto; 
     height: auto;
-    aspect-ratio: 1/1;
+    max-width: 100%;
+    max-height: 100%;
     box-shadow: 6px 6px 0 0 var(--accent-1);
     background-image: radial-gradient(circle, #1a1a1a 1px, transparent 1px);
     background-size: 20px 20px;
+    object-fit: contain; /* Ensure canvas preserves its content within bounds */
 }
 
 .game-status {
@@ -256,20 +266,18 @@ canvas {
 
 /* Add tap areas for directional control */
 .tap-controls {
-    display: none;
+    display: block; /* Ensure tap controls are visible */
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100%; /* Match the size of the canvas */
+    height: 100%; /* Match the size of the canvas */
     z-index: 10;
-    pointer-events: none; /* Allow clicks to pass through to canvas by default */
+    pointer-events: none; /* Allow clicks to pass through by default */
 }
 
 .tap-zone {
     position: absolute;
-    width: 50%;
-    height: 50%;
     pointer-events: auto; /* Make tap zones receive clicks */
     background-color: rgba(255, 255, 255, 0.05);
     transition: background-color 0.2s;
@@ -279,32 +287,33 @@ canvas {
     background-color: rgba(255, 255, 255, 0.15);
 }
 
+/* Adjust tap zones to fully cover the canvas area */
 .tap-up {
     top: 0;
     left: 25%;
     width: 50%;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    height: 30%; /* Top zone takes upper 30% */
 }
 
 .tap-down {
     bottom: 0;
     left: 25%;
     width: 50%;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    height: 30%; /* Bottom zone takes lower 30% */
 }
 
 .tap-left {
-    top: 25%;
+    top: 30%;
     left: 0;
-    height: 50%;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    width: 25%;
+    height: 40%;
 }
 
 .tap-right {
-    top: 25%;
+    top: 30%;
     right: 0;
-    height: 50%;
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    width: 25%; 
+    height: 40%;
 }
 
 /* New D-pad design - Perspective 3D buttons */
@@ -510,6 +519,7 @@ canvas {
     border: none;
 }
 
+/* Update keyboard tip styling to accommodate WASD keys */
 .keyboard-tip {
     font-size: 0.8rem;
     color: var(--text);
@@ -557,7 +567,174 @@ footer a:hover {
     text-decoration: underline;
 }
 
+/* Mobile instructions overlay - update to match neo-brutalist style */
+.mobile-instructions {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 10px;
+    right: 10px;
+    background-color: var(--surface);
+    color: white;
+    padding: 12px 15px;
+    border: 3px solid var(--accent-3);
+    box-shadow: 5px 5px 0 var(--accent-1);
+    font-size: 0.9rem;
+    z-index: 150;
+    transform: rotate(-1deg);
+    max-width: 450px;
+    margin: 0 auto;
+}
+
+.mobile-instructions h3 {
+    color: var(--accent-3);
+    font-size: 1rem;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transform: rotate(1deg);
+}
+
+.mobile-instructions p {
+    margin: 7px 0;
+    line-height: 1.4;
+}
+
+.mobile-instructions .close-btn {
+    position: absolute;
+    top: 5px;
+    right: 8px;
+    background: var(--accent-2);
+    color: var(--dark-bg);
+    border: 2px solid black;
+    width: 25px;
+    height: 25px;
+    font-size: 1.2rem;
+    border-radius: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 2px 2px 0 0 black;
+}
+
+.mobile-instructions .close-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 0 black;
+}
+
+.mobile-footer {
+    display: none;
+    background-color: var(--surface);
+    border-top: 2px solid var(--accent-2);
+    padding: 5px;
+    width: 100%;
+    text-align: center;
+    font-size: 0.7rem;
+    margin-top: auto; /* Push to bottom of flex container */
+}
+
 /* Media queries for better responsiveness */
+@media (max-width: 480px) {
+    body {
+        padding: 0; /* Remove padding on mobile */
+        justify-content: flex-start; /* Align from top on mobile */
+    }
+
+    .game-container {
+        padding: 0.5rem;
+        width: 100%;
+        max-width: 100%; /* Use full width on mobile */
+        border-width: 2px; /* Smaller border */
+        box-shadow: 4px 4px 0 0 var(--primary); /* Smaller shadow */
+        transform: none; /* No rotation on mobile for clean edges */
+        height: 100vh; /* Use full viewport height */
+        box-sizing: border-box;
+        margin: 0;
+    }
+    
+    h1 {
+        font-size: 1.3rem;
+        margin-bottom: 0;
+        transform: none;
+        /* Maintain the text shadow for style */
+    }
+    
+    .score {
+        font-size: 1.3rem;
+        margin: 0;
+        transform: none;
+        /* Keep the text shadow */
+    }
+    
+    canvas {
+        max-width: 100%; /* Allow canvas to use full width */
+        border-width: 2px; /* Thinner border */
+        box-shadow: 3px 3px 0 0 var(--accent-1); /* Smaller shadow */
+    }
+    
+    .controls-wrapper {
+        max-width: 100%;
+        flex-direction: column;
+        gap: 8px; /* Tighter spacing */
+        margin-top: 5px; /* Reduced top margin */
+    }
+
+    .main-btn {
+        padding: 0.3rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    .secondary-btn {
+        width: 34px;
+        height: 34px;
+    }
+
+    .game-info {
+        margin-top: 0.3rem;
+    }
+    
+    /* Hide footer on mobile to maximize game space */
+    footer {
+        display: none;
+    }
+    
+    /* Make tap controls fill the entire canvas area */
+    .tap-controls {
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .game-container {
+        padding: 0;
+        width: 100%;
+        height: 100vh; /* Full viewport height */
+        max-width: 100%;
+        border-width: 0;
+        box-shadow: none;
+        margin: 0;
+    }
+
+    .game-area {
+        height: calc(100vh - 100px); /* Subtract space for controls and header */
+    }
+
+    canvas {
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+    }
+
+    .controls-wrapper {
+        margin-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        width: 100%;
+    }
+}
+
 @media (max-width: 480px) {
     .game-container {
         padding: 0.8rem;
@@ -696,10 +873,726 @@ footer a:hover {
         margin-top: 0.3rem;
         font-size: 0.7rem;
     }
+    
+    /* Keep the mobile instructions visible even on short screens */
+    .mobile-instructions {
+        padding: 8px 10px;
+        max-height: 120px;
+        overflow: auto;
+        font-size: 0.8rem;
+        bottom: 10px;
+    }
+    
+    .mobile-instructions h3 {
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
 }
 
 @media (min-height: 850px) {
     .fruit-guide.show, .keyboard-tip.show {
         display: block;
+    }
+}
+
+/* Additional media query for landscape orientation */
+@media (max-height: 480px) and (orientation: landscape) {
+    .game-container {
+        flex-direction: row; /* Side by side layout in landscape */
+        padding: 0.3rem;
+    }
+    
+    .game-area {
+        width: 65%; /* Take majority of the space */
+        height: calc(100vh - 30px); /* Use almost all available height */
+        margin-right: 0.5rem;
+    }
+    
+    canvas {
+        max-width: 95%; /* Allow canvas to fill available width */
+        max-height: 95%; /* Allow canvas to fill available height */
+        width: auto;
+        height: auto;
+    }
+    
+    .controls-wrapper, .game-info {
+        width: 35%;
+        margin-top: 0;
+    }
+    
+    h1 {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 767px) {
+    body {
+        padding: 0;
+        justify-content: flex-start;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .game-container {
+        width: 100%;
+        max-width: none;
+        height: 100vh;
+        margin: 0;
+        padding: 0.5rem;
+        border-width: 0;
+        box-shadow: none;
+        transform: none;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        padding-bottom: 5px; /* Add a little padding at the bottom */
+        box-sizing: border-box;
+    }
+    
+    h1 {
+        font-size: 1.2rem;
+        margin: 0;
+        transform: none;
+    }
+    
+    .score {
+        font-size: 1.2rem;
+        margin: 0.1rem 0 0.3rem;
+        transform: none;
+    }
+    
+    .game-area {
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: calc(100vh - 100px); /* Adjust height for header and controls */
+        padding: 0;
+        margin: 0;
+        position: relative; /* Ensure position context for absolute children */
+        flex: 1 0 auto;
+        height: auto; /* Let it size naturally based on flex */
+        min-height: 60vh; /* Ensure minimum height */
+    }
+    
+    canvas {
+        /* Update mobile canvas styling to use available space */
+        width: auto;
+        height: auto;
+        max-width: 98%;
+        max-height: 98%;
+        border-width: 2px;
+        box-shadow: 3px 3px 0 0 var(--accent-1);
+    }
+    
+    .controls-wrapper {
+        margin-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .main-btn {
+        padding: 0.3rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    .secondary-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 0.9rem;
+    }
+    
+    /* Hide guides on mobile to maximize game space */
+    .guide-toggle {
+        display: none;
+    }
+    
+    .fruit-guide, .keyboard-tip {
+        display: none !important;
+    }
+    
+    /* Hide footer on mobile to maximize game space */
+    footer {
+        display: none;
+    }
+    
+    .game-info {
+        display: none;
+    }
+    
+    /* Make tap controls fill the entire canvas area */
+    .tap-controls {
+        display: block;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+    }
+    
+    /* Show mobile footer */
+    .mobile-footer {
+        display: block;
+        position: relative; /* Not fixed */
+        bottom: auto;
+        margin-top: 5px; /* Small margin from the controls */
+    }
+    
+    /* Show mobile instructions initially */
+    .mobile-instructions {
+        display: block;
+    }
+    
+    /* Ensure game info is visible */
+    .game-info {
+        display: block;
+        margin: 0;
+        padding: 0;
+        max-height: 60px;
+        overflow: auto;
+    }
+    
+    /* Adjust the game area to account for footer space */
+    .game-area {
+        height: calc(100vh - 140px); /* Allow space for header, controls and footer */
+    }
+    
+    /* Make the fruit guide more compact for mobile */
+    .fruit-guide.show {
+        position: absolute;
+        bottom: 60px;
+        left: 10px;
+        right: 10px;
+        z-index: 110;
+        max-height: 40vh;
+        overflow: auto;
+        background-color: rgba(37, 37, 37, 0.95);
+    }
+    
+    .keyboard-tip.show {
+        position: absolute;
+        bottom: 60px;
+        left: 10px;
+        right: 10px;
+        z-index: 110;
+        padding: 10px;
+        background-color: rgba(37, 37, 37, 0.95);
+    }
+    
+    /* Style the tap zones to make them subtly visible */
+    .tap-zone {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .tap-zone:after {
+        position: absolute;
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        font-size: 1.2rem;
+        opacity: 0.3;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    
+    .tap-up:after {
+        content: "\f062"; /* up arrow */
+    }
+    
+    .tap-down:after {
+        content: "\f063"; /* down arrow */
+    }
+    
+    .tap-left:after {
+        content: "\f060"; /* left arrow */
+    }
+    
+    .tap-right:after {
+        content: "\f061"; /* right arrow */
+    }
+}
+
+/* Update mobile footer and game info visibility */
+@media (max-width: 767px) {
+    /* Make the game container a proper flex container */
+    .game-container {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        padding: 0.5rem;
+        padding-bottom: 2rem; /* Add space for the footer */
+    }
+    
+    /* Make the game-area take proper space but not all space */
+    .game-area {
+        flex: 1 0 auto;
+        min-height: 60vh; /* Ensure it takes reasonable space */
+        max-height: 70vh; /* But not too much */
+    }
+    
+    /* Show the game info on mobile */
+    .game-info {
+        display: flex;
+        flex-direction: column;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        max-height: none; /* Remove height limitation */
+    }
+    
+    /* Show guide toggle buttons */
+    .guide-toggle {
+        display: flex;
+        margin-bottom: 0.3rem;
+    }
+    
+    /* Show mobile footer at the bottom of screen */
+    .mobile-footer {
+        display: block;
+        position: relative;
+        padding: 8px 5px;
+        background-color: var(--surface);
+        border-top: 2px solid var(--accent-2);
+        margin-top: 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    /* Improve visibility of the mobile footer content */
+    .mobile-footer p {
+        margin: 0;
+        color: var(--text);
+        font-weight: 500;
+    }
+    
+    /* Make sure when guides are shown, they don't overflow */
+    .fruit-guide.show, .keyboard-tip.show {
+        display: block;
+        max-height: 30vh;
+        overflow-y: auto;
+        padding: 0.5rem;
+    }
+    
+    /* Prevent the default hiding of fruit guide and keyboard tip */
+    .fruit-guide, .keyboard-tip {
+        display: none !important; /* Only show when .show class is applied */
+    }
+    
+    .fruit-guide.show, .keyboard-tip.show {
+        display: block !important;
+        position: absolute; /* Position as overlay */
+        left: 5%;
+        right: 5%;
+        bottom: 20%; /* Position higher to avoid being cut off */
+        z-index: 100;
+        max-height: 50vh;
+        background-color: var(--surface);
+        border: 2px solid var(--accent-3);
+        box-shadow: 4px 4px 0 0 var(--accent-1);
+    }
+}
+
+/* Additional specific fixes for very short screens */
+@media (max-height: 640px) {
+    .game-container {
+        padding-top: 0.3rem;
+        padding-bottom: 0.3rem;
+        height: auto; /* Let it grow as needed */
+    }
+    
+    .game-area {
+        max-height: 60vh; /* Less height for the game area */
+        min-height: 50vh;
+    }
+    
+    .mobile-footer {
+        padding: 4px 5px;
+        font-size: 0.75rem;
+        margin-top: 0.3rem;
+    }
+    
+    h1 {
+        font-size: 1.2rem;
+        margin-bottom: 0.1rem;
+    }
+    
+    .score {
+        margin: 0.1rem 0 0.3rem;
+    }
+    
+    /* Make controls more compact */
+    .controls-wrapper {
+        margin-top: 0.3rem;
+        padding-bottom: 0.3rem;
+    }
+}
+
+footer a, .mobile-footer a {
+    color: var(--accent-3);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+footer a:hover, .mobile-footer a:hover {
+    text-decoration: underline;
+    color: var(--accent-2);
+}
+
+/* Additional modal styles for mobile */
+body.modal-open {
+    overflow: hidden; /* Prevent scrolling when modal is open */
+}
+
+/* Position guides as modals on mobile */
+@media (max-width: 767px) {
+    .fruit-guide.show, .keyboard-tip.show {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        max-width: 400px;
+        max-height: 70vh;
+        z-index: 200;
+        overflow-y: auto;
+        box-shadow: 0 0 0 100vw rgba(0, 0, 0, 0.6);
+    }
+    
+    .fruit-item {
+        min-width: 45%;
+    }
+}
+
+/* Layout improvements for web and mobile */
+
+/* Improve desktop layout */
+@media (min-width: 768px) {
+    .game-container {
+        margin-top: 10px;
+        margin-bottom: 10px;
+        max-height: 90vh; /* Prevent overflow on smaller desktop screens */
+    }
+    
+    .game-area {
+        height: 60vh; /* Use consistent height based on viewport */
+        min-height: 320px;
+        max-height: 500px;
+    }
+    
+    .controls {
+        margin: 0.8rem 0;
+    }
+    
+    .fruit-guide, .keyboard-tip {
+        max-width: 90%;
+        margin: 0 auto;
+    }
+    
+    /* Improve focus styles for better accessibility */
+    .main-btn:focus, .secondary-btn:focus, .guide-toggle-btn:focus {
+        outline: 2px solid var(--accent-2);
+        outline-offset: 2px;
+    }
+}
+
+/* Fix mobile layout issues - consolidate rules */
+@media (max-width: 767px) {
+    /* Make the game container take up proper space */
+    .game-container {
+        height: auto;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* Make game area take proportional space */
+    .game-area {
+        flex: 1;
+        min-height: 50vh;
+        max-height: 65vh;
+        margin: 0.5rem 0;
+    }
+    
+    /* Ensure controls and guides are visible */
+    .game-info {
+        display: flex !important; /* Override existing !important rule */
+        flex-direction: column;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .guide-toggle {
+        display: flex !important; /* Override existing !important rule */
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .guide-toggle-btn {
+        min-width: 80px; /* Make buttons wider for easier tapping */
+        padding: 0.3rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    /* Make the mobile footer match the neo-brutalist style */
+    .mobile-footer {
+        padding: 8px 0;
+        margin-top: auto;
+        border-top: 2px solid var(--accent-2);
+        font-weight: 500;
+    }
+    
+    .mobile-footer a {
+        padding: 2px 5px;
+        background-color: var(--accent-1);
+        color: white !important; /* Override previous styles */
+        text-decoration: none;
+        border: 1px solid black;
+        box-shadow: 2px 2px 0 0 black;
+        transition: all 0.2s ease;
+    }
+    
+    .mobile-footer a:active {
+        transform: translate(1px, 1px);
+        box-shadow: 1px 1px 0 0 black;
+    }
+    
+    /* Fix the overlays for mobile */
+    .fruit-guide.show, .keyboard-tip.show {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        max-height: 70%;
+        z-index: 200;
+        overflow-y: auto;
+        border: 3px solid var(--accent-3);
+        box-shadow: 5px 5px 0 0 var(--accent-1);
+    }
+    
+    /* Add close button for guides on mobile */
+    .fruit-guide.show::after, .keyboard-tip.show::after {
+        content: "×";
+        position: absolute;
+        top: 5px;
+        right: 8px;
+        font-size: 1.5rem;
+        color: var(--accent-2);
+        cursor: pointer;
+    }
+    
+    /* Make scores more visible on mobile */
+    .score {
+        font-size: 1.8rem;
+        margin: 0.2rem 0 0.5rem;
+        text-shadow: 2px 2px 0 var(--primary-dark);
+    }
+}
+
+/* Fix very small screens */
+@media (max-height: 500px) and (orientation: landscape) {
+    body {
+        overflow-y: auto;
+    }
+    
+    .game-container {
+        padding: 0.3rem;
+        min-height: auto;
+        height: auto;
+        max-height: none;
+    }
+    
+    .game-area {
+        min-height: 240px;
+        height: 240px;
+        max-height: 240px;
+    }
+    
+    h1 {
+        font-size: 1.2rem;
+        margin: 0.2rem 0;
+    }
+    
+    .score {
+        font-size: 1.2rem;
+        margin: 0.1rem 0 0.3rem;
+    }
+    
+    .mobile-footer {
+        position: relative;
+        margin-top: 0.5rem;
+    }
+}
+
+/* Add backdrop to overlay guides for better visibility */
+.fruit-guide.show:before, .keyboard-tip.show:before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: -1;
+}
+
+/* Fix mobile alignment to match desktop layout */
+
+/* Modify mobile-specific media queries for better alignment */
+@media (max-width: 767px) {
+    /* Make the game container layout more consistent with desktop */
+    .game-container {
+        display: flex;
+        flex-direction: column;
+        padding: 0.7rem;
+        max-width: 95%;
+        border-width: 2px;
+        /* Keep container centered like on desktop */
+        margin: 0 auto;
+        transform: none; /* Remove rotation on mobile */
+        height: auto;
+        min-height: 98vh;
+    }
+    
+    /* Make the game area proportionally sized */
+    .game-area {
+        flex: 1 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 50vh;
+        max-height: 60vh;
+        margin: 0.5rem 0;
+        overflow: hidden;
+    }
+    
+    /* Improve canvas proportions on mobile */
+    canvas {
+        max-width: 95%;
+        max-height: 95%;
+        margin: 0 auto;
+        border: 2px solid var(--text);
+        object-fit: contain;
+    }
+    
+    /* Ensure control spacing matches desktop proportionally */
+    .controls-wrapper {
+        margin: 0.5rem auto;
+        width: 95%;
+        max-width: 340px;
+    }
+    
+    /* Make controls better match desktop style */
+    .main-btn, .secondary-btn {
+        box-shadow: 3px 3px 0 0 black;
+    }
+    
+    /* Fix info section spacing */
+    .game-info {
+        margin: 0.5rem auto;
+        width: 95%;
+        max-width: 340px;
+    }
+    
+    /* Ensure game info is always visible */
+    .guide-toggle {
+        display: flex !important;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Make the mobile footer styling match desktop */
+    .mobile-footer {
+        width: 95%;
+        max-width: 340px;
+        margin: 0.5rem auto;
+        padding: 0.3rem;
+        border-top: 2px solid var(--accent-2);
+        font-size: 0.8rem;
+    }
+    
+    /* Adjust the mobile footer styling to match desktop */
+    .mobile-footer p {
+        margin: 0;
+        text-align: center;
+    }
+    
+    .mobile-footer a {
+        /* Make the mobile footer link style match desktop */
+        padding: 2px 5px;
+        color: var(--accent-3) !important;
+        text-decoration: none;
+        font-weight: bold;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+    }
+    
+    .mobile-footer a:hover, .mobile-footer a:active {
+        text-decoration: underline;
+        color: var(--accent-2) !important;
+        transform: none;
+    }
+}
+
+/* Fix landscape orientation for more consistent layout */
+@media (max-height: 500px) and (orientation: landscape) {
+    .game-container {
+        flex-direction: column;
+        padding: 0.5rem;
+    }
+    
+    .game-area {
+        max-height: 65vh;
+        min-height: 240px;
+    }
+    
+    canvas {
+        max-height: 240px;
+    }
+    
+    /* Keep elements aligned and compact */
+    .controls-wrapper, .mobile-footer, .game-info {
+        margin: 0.3rem auto;
+    }
+    
+    /* Ensure footer is visible in landscape */
+    .mobile-footer {
+        padding: 0.2rem;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Add some additional fixes for small screens */
+@media (max-width: 360px) {
+    .game-container {
+        width: 98%;
+        padding: 0.5rem;
+    }
+    
+    .mobile-footer {
+        font-size: 0.75rem;
+    }
+    
+    /* Ensure buttons don't overflow */
+    .guide-toggle-btn {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
+    }
+    
+    /* Adjust height proportions */
+    .game-area {
+        max-height: 55vh;
+    }
+}
+
+/* Make sure the keyboard tip has enough space on mobile */
+@media (max-width: 767px) {
+    .keyboard-tip.show {
+        padding: 0.8rem 0.5rem;
+        font-size: 0.75rem;
+        gap: 0.4rem;
     }
 }
