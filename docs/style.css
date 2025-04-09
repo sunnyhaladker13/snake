@@ -97,26 +97,25 @@ h1 {
 }
 
 .game-area {
-    position: relative !important;
-    width: 100% !important;
-    height: 60vh !important; /* Changed from 75vh to accommodate mobile browser chrome */
-    min-height: 300px !important; /* Minimum height to ensure playability */
-    max-height: 600px !important; /* Add maximum height */
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    margin: 0 auto !important;
-    padding: 0 !important;
-    overflow: hidden !important; /* Prevent scrollbars if canvas is slightly larger */
+    position: relative;
+    width: 100%;
+    height: 70vh; /* Use 70% of the viewport height */
+    min-height: 300px;
+    max-height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    overflow: hidden;
 }
 
 canvas {
-    display: block !important;
-    margin: 0 auto !important;
-    background: #000 !important;
-    border: var(--border-thickness) solid var(--text) !important;
-    object-fit: contain !important; /* Ensure canvas preserves its content within bounds */
-    position: relative !important; /* Establish positioning context */
+    width: 100%;
+    height: 100%;
+    max-width: 90vw; /* Ensure it doesn't exceed 90% of the viewport width */
+    max-height: 90vw; /* Maintain aspect ratio */
+    object-fit: contain;
+    background-color: #000; /* Restore the black background */
 }
 
 .game-status {
@@ -261,13 +260,13 @@ canvas {
 
 /* Add tap areas for directional control */
 .tap-controls {
-    position: absolute !important;
-    inset: 0 !important;  /* covers entire parent */
-    z-index: 100 !important;
-    pointer-events: none !important;
-    display: block !important;
-    width: 100% !important;
-    height: 100% !important;
+    display: none; /* Ensure only one set of controls is visible */
+}
+
+/* Debugging styles for tap zones (optional) */
+.tap-controls.debug {
+    display: block;
+    background-color: rgba(255, 0, 0, 0.1);
 }
 
 .tap-zone {
@@ -1288,7 +1287,7 @@ footer a:hover {
 }
 
 footer a, .mobile-footer a {
-    color: var(--accent-3);
+    color: var (--accent-3);
     text-decoration: none;
     font-weight: bold;
 }
@@ -1924,36 +1923,36 @@ body.modal-open {
 @media (max-width: 767px) {
     .game-area {
         height: 70vh !important; /* Increase height on mobile */
-        min-height: 280px !important;
+        min-height: 320px !important; /* Higher minimum height */
     }
     
     canvas {
         width: 100% !important;
         height: 100% !important;
-        max-width: 90vw !important;
-        max-height: 90vw !important;
-        object-fit: contain !important; 
+        max-width: 95vw !important; /* Use more viewport width */
+        max-height: 95vw !important; /* Use more viewport height */
+        object-fit: contain !important;
+        background-color: #000 !important; /* Ensure black background on mobile */
+    }
+    
+    /* Make content larger */
+    h1 {
+        font-size: 2.2rem !important; /* Larger title */
+    }
+    
+    .score {
+        font-size: 2.5rem !important; /* Larger score */
+    }
+    
+    .main-btn, .secondary-btn {
+        padding: 0.6rem 1.3rem !important; /* Larger buttons */
+        font-size: 1.2rem !important;
     }
 }
 
 /* Further adjustment for very small screens */
 @media (max-width: 380px) {
     .game-container {
-        padding: 0.5rem !important;
-    }
-    
-    h1 {
-        font-size: 1.5rem !important;
-        margin-bottom: 0 !important;
-    }
-    
-    .score {
-        font-size: 1.8rem !important;
-        margin: 0 0 0.3rem !important;
-    }
-    
-    .game-area {
-        height: 65vh !important;
-        min-height: 250px !important;
+        padding: 0.6rem !important; /* More padding */
     }
 }

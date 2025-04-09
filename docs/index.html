@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake Game</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <script>
@@ -49,6 +49,10 @@
             enableMobileControls();
         }
     </script>
+    <script src="js/snake-neo-design.js" defer></script>
+    <!-- Tap zone fixes - load in this order to ensure compatibility -->
+    <script src="tap-zones-fix.js" defer></script>
+    <script src="direct-tap-controller.js" defer></script>
 </head>
 <body>
     <div class="game-container">
@@ -131,137 +135,12 @@
         <p>Created by sunny | <a href="https://www.linkedin.com/in/sunnyhaladker/" target="_blank">LinkedIn</a></p>
     </footer>
     
-    <script src="js/snake-neo-design.js"></script>
-    
-    <script>
-        // Toggle guides functionality
-        document.getElementById('fruitGuideBtn').addEventListener('click', function() {
-            const fruitGuide = document.getElementById('fruitGuide');
-            const keysGuide = document.getElementById('keysGuide');
-            
-            fruitGuide.classList.toggle('show');
-            keysGuide.classList.remove('show');
-            
-            this.classList.toggle('active');
-            document.getElementById('keysGuideBtn').classList.remove('active');
-            
-            // If on mobile, add backdrop and make it dismissable by clicking outside
-            if (window.innerWidth < 768) {
-                document.body.classList.toggle('modal-open');
-                
-                // If opening the guide, add click outside listener
-                if (fruitGuide.classList.contains('show')) {
-                    setTimeout(() => {
-                        document.addEventListener('click', closeGuidesOnClickOutside);
-                    }, 100);
-                } else {
-                    document.removeEventListener('click', closeGuidesOnClickOutside);
-                }
-            }
-        });
-        
-        document.getElementById('keysGuideBtn').addEventListener('click', function() {
-            const fruitGuide = document.getElementById('fruitGuide');
-            const keysGuide = document.getElementById('keysGuide');
-            
-            keysGuide.classList.toggle('show');
-            fruitGuide.classList.remove('show');
-            
-            this.classList.toggle('active');
-            document.getElementById('fruitGuideBtn').classList.remove('active');
-            
-            // If on mobile, add backdrop and make it dismissable by clicking outside
-            if (window.innerWidth < 768) {
-                document.body.classList.toggle('modal-open');
-                
-                // If opening the guide, add click outside listener
-                if (keysGuide.classList.contains('show')) {
-                    setTimeout(() => {
-                        document.addEventListener('click', closeGuidesOnClickOutside);
-                    }, 100);
-                } else {
-                    document.removeEventListener('click', closeGuidesOnClickOutside);
-                }
-            }
-        });
-        
-        // Function to close guides when clicking outside
-        function closeGuidesOnClickOutside(e) {
-            const fruitGuide = document.getElementById('fruitGuide');
-            const keysGuide = document.getElementById('keysGuide');
-            
-            // If click is outside the guides, close them
-            if (!fruitGuide.contains(e.target) && 
-                !keysGuide.contains(e.target) && 
-                !e.target.classList.contains('guide-toggle-btn')) {
-                
-                fruitGuide.classList.remove('show');
-                keysGuide.classList.remove('show');
-                document.getElementById('fruitGuideBtn').classList.remove('active');
-                document.getElementById('keysGuideBtn').classList.remove('active');
-                document.body.classList.remove('modal-open');
-                document.removeEventListener('click', closeGuidesOnClickOutside);
-            }
-        }
-        
-        // Make sure guides are properly sized on rotation
-        window.addEventListener('resize', function() {
-            if (window.innerWidth < 768) {
-                const fruitGuide = document.getElementById('fruitGuide');
-                const keysGuide = document.getElementById('keysGuide');
-                
-                // If any guide is open, make sure it's centered
-                if (fruitGuide.classList.contains('show') || keysGuide.classList.contains('show')) {
-                    // Slight delay to let the resize complete
-                    setTimeout(() => {
-                        if (fruitGuide.classList.contains('show')) {
-                            fruitGuide.style.maxHeight = (window.innerHeight * 0.7) + 'px';
-                        }
-                        if (keysGuide.classList.contains('show')) {
-                            keysGuide.style.maxHeight = (window.innerHeight * 0.7) + 'px';
-                        }
-                    }, 100);
-                }
-            }
-        });
-        
-        // Add close button functionality for mobile instructions
-        document.getElementById('closeInstructions').addEventListener('click', function() {
-            document.getElementById('mobileInstructions').style.display = 'none';
-            localStorage.setItem('mobileInstructionsShown', 'true');
-        });
-        
-        // Check if we should show mobile instructions
-        document.addEventListener('DOMContentLoaded', function() {
-            // Only show instructions if they haven't been dismissed
-            if (localStorage.getItem('mobileInstructionsShown')) {
-                document.getElementById('mobileInstructions').style.display = 'none';
-            }
-        });
-        
-        // Add debug feature for mobile tap zones
-        function toggleTapZoneDebug() {
-            const tapControls = document.querySelector('.tap-controls');
-            if (tapControls) {
-                tapControls.classList.toggle('debug');
-                
-                // Force refresh events on tap zones
-                setupTapZoneControls();
-                
-                return tapControls.classList.contains('debug');
-            }
-            return false;
-        }
-        
-        // Add this to make debugging easier from console
-        window.toggleTapControls = toggleTapZoneDebug;
-    </script>
-    
     <script src="game.js"></script>
     
     <!-- Mobile-specific Scripts -->
     <script src="unified-mobile-controls.js"></script>
     <script src="mobile-size-fix.js"></script>
     <script src="tap-onboarding.js"></script>
+    <script src="ios-touch-helper.js"></script>
 </body>
 </html>

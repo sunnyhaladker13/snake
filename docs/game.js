@@ -4,7 +4,8 @@ const ctx = canvas.getContext('2d');
 const startBtn = document.getElementById('startBtn');
 const scoreElement = document.getElementById('score');
 
-const gridSize = 20;
+// CRITICAL FIX: Change from const to let to allow reassignment
+let gridSize = 20;
 const tileCount = canvas.width / gridSize;
 
 let snake = [];
@@ -720,8 +721,9 @@ function gameLoop(timestamp) {
         }
     }
     
-    // Clear the canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Clear the canvas with black background
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // Draw grid
     drawGrid();
@@ -993,48 +995,81 @@ function setupTouchControls() {
     console.log("Touch controls setup complete");
 }
 
-// Replace the setupTapZoneControls function with a drastically simplified version
+// Replace the setupTapZoneControls function with a drastically simplified version that creates missing elements
 function setupTapZoneControls() {
     console.log("Setting up simplified tap controls");
     
-    // Get the touch zones directly
-    const tapUp = document.getElementById('tapUp');
-    const tapDown = document.getElementById('tapDown');
-    const tapLeft = document.getElementById('tapLeft');
-    const tapRight = document.getElementById('tapRight');
-    
-    // Exit early if elements don't exist
-    if (!tapUp || !tapDown || !tapLeft || !tapRight) {
-        console.error("Tap zones not found!");
-        return;
+    // First, ensure tap-controls container exists
+    let tapControls = document.querySelector('.tap-controls');
+    if (!tapControls) {
+        const gameArea = document.querySelector('.game-area');
+        if (!gameArea) {
+            console.error("Game area not found!");
+            return;
+        }
+        
+        tapControls = document.createElement('div');
+        tapControls.className = 'tap-controls';
+        gameArea.appendChild(tapControls);
+        console.log("Created missing tap-controls container");
     }
     
-    console.log("All tap zones found, attaching handlers");
+    // Define all needed tap zones
+    const zones = [
+        { id: 'tapUp', dir: 'up', symbol: '▲', position: 'top:0; left:25%; width:50%; height:33%' },
+        { id: 'tapDown', dir: 'down', symbol: '▼', position: 'bottom:0; left:25%; width:50%; height:33%' },
+        { id: 'tapLeft', dir: 'left', symbol: '◀', position: 'top:33%; left:0; width:25%; height:34%' },
+        { id: 'tapRight', dir: 'right', symbol: '▶', position: 'top:33%; right:0; width:25%; height:34%' }
+    ];
     
-    // Create direct tap function for each direction
-    function createDirectionHandler(direction) {
-        return function(e) {
-            console.log(`Tapped ${direction}`);
-            if (e) e.preventDefault();
-            if (gameRunning && !gamePaused) {
-                handleDirection(direction);
-            }
-        };
-    }
+    // Create or update each zone
+    zones.forEach(zone => {
+        let tapZone = document.getElementById(zone.id);
+        
+        if (!tapZone) {
+            // Create missing zone
+            tapZone = document.createElement('div');
+            tapZone.id = zone.id;
+            tapZone.className = `tap-zone tap-${zone.dir}`;
+            tapControls.appendChild(tapZone);
+            console.log(`Created missing ${zone.dir} tap zone`);
+        }
+        
+        // Apply styling
+        tapZone.style.cssText = `
+            position: absolute;
+            ${zone.position};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.5);
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+        `;
+        
+        // Add the symbol content
+        tapZone.textContent = zone.symbol;
+        
+        // Create direct tap function for each direction
+        function createDirectionHandler(direction) {
+            return function(e) {
+                console.log(`Tapped ${direction}`);
+                if (e) e.preventDefault();
+                if (gameRunning && !gamePaused) {
+                    handleDirection(direction);
+                }
+            };
+        }
 
-    // Direct assignment of click/touch events
-    tapUp.onclick = createDirectionHandler('up');
-    tapDown.onclick = createDirectionHandler('down');
-    tapLeft.onclick = createDirectionHandler('left');
-    tapRight.onclick = createDirectionHandler('right');
-    
-    // Ensure they have styles that make them viable for touch
-    tapUp.style.cursor = 'pointer';
-    tapDown.style.cursor = 'pointer';
-    tapLeft.style.cursor = 'pointer';
-    tapRight.style.cursor = 'pointer';
+        // Attach event handlers
+        tapZone.onclick = createDirectionHandler(zone.dir);
+        tapZone.ontouchend = createDirectionHandler(zone.dir);
+    });
 
-    console.log("Tap controls attached");
+    console.log("Tap controls attached successfully");
 }
 
 // Add visual effects to the game
@@ -1130,10 +1165,22 @@ function resizeGameCanvas() {
 
     const availableWidth = gameArea.clientWidth;
     const availableHeight = gameArea.clientHeight;
+    
+    // Determine if we should use mobile optimizations
+    const isMobileDevice = /iPhone|iPad|iPod|Android|Mobi/i.test(navigator.userAgent);
+    const isNarrowScreen = window.innerWidth <= 767;
+    const isMobile = isMobileDevice || isNarrowScreen || window.location.search.includes('forceMobile=true');
 
-    // Set canvas dimensions to use all available space
-    canvas.width = availableWidth * 0.95; // Use 95% of available width for some margin
-    canvas.height = availableHeight * 0.95; // Use 95% of available height for some margin
+    // Use different sizing strategies based on device
+    if (isMobile) {
+        // Mobile - use more available space
+        canvas.width = availableWidth * 0.98;
+        canvas.height = availableHeight * 0.98;
+    } else {
+        // Desktop - use standard sizing
+        canvas.width = availableWidth * 0.95;
+        canvas.height = availableHeight * 0.95;
+    }
 
     // Calculate grid size based on the smaller dimension
     // This ensures grid cells remain square even if canvas is rectangular
@@ -1156,12 +1203,22 @@ function resizeGameCanvas() {
         tapControls.style.zIndex = '100';
         tapControls.style.pointerEvents = 'none';
         
-        // Log the positioning for debugging
-        console.log("Updated tap controls positioning:", {
-            inset: tapControls.style.inset,
-            width: tapControls.style.width,
-            height: tapControls.style.height
-        });
+        // Always show tap controls on mobile or when forced via URL
+        if (isMobile) {
+            tapControls.style.display = 'block';
+        } else {
+            tapControls.style.display = 'none';
+        }
+        
+        // Only log when controls are visible
+        if (isMobile) {
+            console.log("Tap controls enabled with positioning:", {
+                inset: tapControls.style.inset,
+                width: tapControls.style.width,
+                height: tapControls.style.height,
+                display: tapControls.style.display
+            });
+        }
     }
     
     // Recalculate game area dimensions in grid cells
@@ -1320,7 +1377,9 @@ function resizeGameCanvas() {
 
 // Helper function to clear the canvas
 function clearCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#000'; // Set black fill
+    ctx.fillRect(0, 0, canvas.width, canvas.height); // Fill with black
+    // ctx.clearRect(0, 0, canvas.width, canvas.height); - commented out to avoid clearing to transparent
 }
 
 // Fix the realignGameElements function

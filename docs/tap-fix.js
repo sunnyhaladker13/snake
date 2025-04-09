@@ -1,13 +1,11 @@
 /**
  * Emergency fix for mobile tap controls
  * 
- * This script fixes tap zones on mobile devices by using
- * simpler event handling and making sure the zones are visible
- * and properly positioned.
+ * This script ensures tap controls work reliably on all devices
  */
 
 (function() {
-    console.log("Mobile tap-fix running");
+    console.log("TAP FIX: Running independent of device type");
     
     // Wait for DOM to be fully loaded
     function fixTapZones() {
@@ -18,7 +16,7 @@
         const tapRight = document.getElementById('tapRight');
         
         // Log which ones we found
-        console.log("Fixing tap zones:", {
+        console.log("TAP FIX: Found tap zones:", {
             up: !!tapUp,
             down: !!tapDown,
             left: !!tapLeft,
@@ -27,22 +25,25 @@
         
         // Exit if elements don't exist
         if (!tapUp || !tapDown || !tapLeft || !tapRight) {
-            console.error("Tap zones missing - trying to recreate them");
+            console.error("TAP FIX: Tap zones missing - trying to recreate them");
             createTapZones();
             return;
         }
         
-        // Make sure the tap zones are visible
+        // Get reference to canvas and tap controls
+        const canvas = document.getElementById('gameCanvas');
         const tapControls = document.querySelector('.tap-controls');
-        if (tapControls) {
+        
+        // Make sure tap controls are visible regardless of device type for testing
+        if (tapControls && canvas) {
             tapControls.style.display = 'block';
             tapControls.style.position = 'absolute';
-            tapControls.style.top = canvas.offsetTop + 'px';
-            tapControls.style.left = canvas.offsetLeft + 'px';
-            tapControls.style.width = canvas.width + 'px';
-            tapControls.style.height = canvas.height + 'px';
+            tapControls.style.top = '0';
+            tapControls.style.left = '0';
+            tapControls.style.width = '100%';
+            tapControls.style.height = '100%';
             tapControls.style.zIndex = '100';
-            tapControls.style.pointerEvents = 'auto'; // Ensure tap zones are clickable
+            tapControls.style.pointerEvents = 'none';
         }
         
         // Add styles to each zone
@@ -51,6 +52,9 @@
             zone.style.backgroundColor = 'rgba(255,255,255,0.1)';
             zone.style.pointerEvents = 'auto';
             zone.style.cursor = 'pointer';
+            zone.style.display = 'flex';
+            zone.style.alignItems = 'center';
+            zone.style.justifyContent = 'center';
         });
         
         // Position them correctly
@@ -108,7 +112,7 @@
         setupHandlers(tapLeft, 'left');
         setupHandlers(tapRight, 'right');
         
-        console.log("Tap zones fixed successfully");
+        console.log("TAP FIX: Tap zones fixed successfully");
     }
     
     // In case the zones don't exist, try to create them

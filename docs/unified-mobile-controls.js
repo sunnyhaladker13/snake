@@ -1,23 +1,22 @@
 /**
  * Unified Mobile Controls for Snake Game
- * This single script consolidates all mobile touch controls with:
- * - Neo-brutalist styling
- * - Precise positioning
- * - iOS compatibility
- * - Onboarding
+ * This single script consolidates all mobile touch controls
  */
 
 (function() {
-    // Only run on mobile devices
-    const isMobile = /iPhone|iPad|iPod|Android|Mobi/i.test(navigator.userAgent);
+    // Improved mobile detection that always enables controls for development/testing
+    const isMobileDevice = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini|Mobi/i.test(navigator.userAgent);
+    const isNarrowScreen = window.innerWidth <= 767;
+    // Always enable on mobile devices, or on narrow screens, or if forced via URL param
+    const isMobile = isMobileDevice || isNarrowScreen || window.location.search.includes('forceMobile=true');
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     
     if (!isMobile) {
-        console.log("MOBILE CONTROLS: Not a mobile device, skipping");
+        console.log("MOBILE CONTROLS: Not enabling mobile controls");
         return;
     }
     
-    console.log("MOBILE CONTROLS: Mobile device detected" + (isIOS ? " (iOS)" : ""));
+    console.log("MOBILE CONTROLS: Mobile mode active" + (isIOS ? " (iOS)" : ""));
     
     // Create unified controls
     function createUnifiedControls() {
@@ -194,9 +193,12 @@
         if (canvas.clientWidth < gameAreaWidth * 0.9 || canvas.clientHeight < gameAreaHeight * 0.9) {
             console.log("MOBILE CONTROLS: Canvas appears too small, attempting resize");
             
+            // Force black background
+            canvas.style.backgroundColor = '#000';
+            
             // Set canvas dimensions to better fill the game area
             // Preserve aspect ratio (square)
-            const size = Math.min(gameAreaWidth * 0.95, gameAreaHeight * 0.95);
+            const size = Math.min(gameAreaWidth * 0.98, gameAreaHeight * 0.98);
             
             // Set display size (CSS)
             canvas.style.width = size + 'px';
@@ -210,6 +212,9 @@
             
             console.log("MOBILE CONTROLS: Resized canvas to", size + 'px');
         }
+        
+        // Always ensure black background
+        canvas.style.backgroundColor = '#000';
     }
     
     // Add optimized event handlers for all device types
@@ -297,7 +302,6 @@
     function removeExistingControls() {
         const controlsToRemove = [
             '#unifiedMobileControls',
-            '#mobileTouchOverlay',
             '#absoluteTapContainer',
             '#forceFixContainer',
             '#fixedTapContainer',
@@ -305,6 +309,14 @@
             '#iosReloadButton'
         ];
         
+        // Don't remove the original tap-controls, just hide it
+        const tapControls = document.querySelector('.tap-controls');
+        if (tapControls) {
+            tapControls.style.display = 'none';
+            console.log("MOBILE CONTROLS: Original tap controls hidden");
+        }
+        
+        // Remove other controls
         controlsToRemove.forEach(selector => {
             const element = document.querySelector(selector);
             if (element) {
@@ -503,6 +515,76 @@
         return "Mobile controls highlighted for debugging";
     };
     
+    // Add debugging utility to check alignment
+    function debugTapZones() {
+        const container = document.getElementById('unifiedMobileControls');
+        if (!container) {
+            console.error("MOBILE CONTROLS: Tap zones container not found");
+            return false;
+        }
+
+        console.log("MOBILE CONTROLS: Debugging tap zones");
+        container.style.border = '2px solid red'; // Highlight container for debugging
+
+        document.querySelectorAll('.mobile-control-zone').forEach(zone => {
+            const rect = zone.getBoundingClientRect();
+            console.log(`${zone.id} position:`, rect);
+            zone.style.backgroundColor = 'rgba(255, 0, 0, 0.3)'; // Highlight zones
+            zone.style.border = '2px solid white';
+        });
+
+        return true;
+    }
+
+    // Ensure tap zones are aligned with the canvas
+    function ensureTapZoneAlignment() {
+        const canvas = document.getElementById('gameCanvas');
+        const container = document.getElementById('unifiedMobileControls');
+
+        if (!canvas || !container) {
+            console.error("MOBILE CONTROLS: Canvas or container not found");
+            return false;
+        }
+
+        const canvasRect = canvas.getBoundingClientRect();
+        container.style.top = `${canvasRect.top}px`;
+        container.style.left = `${canvasRect.left}px`;
+        container.style.width = `${canvasRect.width}px`;
+        container.style.height = `${canvasRect.height}px`;
+
+        console.log("MOBILE CONTROLS: Tap zones aligned with canvas");
+        return true;
+    }
+
+    // Update event listeners to ensure alignment on resize/orientation change
+    window.addEventListener('resize', ensureTapZoneAlignment);
+    window.addEventListener('orientationchange', () => {
+        setTimeout(ensureTapZoneAlignment, 300);
+        setTimeout(ensureTapZoneAlignment, 1000);
+    });
+
+    // Expose debugging utilities globally
+    window.debugTapZones = debugTapZones;
+    window.ensureTapZoneAlignment = ensureTapZoneAlignment;
+
+    // Make the original tap controls invisible on desktop
+    function hideDesktopControls() {
+        if (!isMobile) {
+            const tapControls = document.querySelector('.tap-controls');
+            if (tapControls) {
+                tapControls.style.display = 'none';
+                console.log("MOBILE CONTROLS: Hidden tap controls for desktop");
+            }
+        }
+    }
+
+    // Run hideDesktopControls immediately and after DOM loaded
+    hideDesktopControls();
+    if (document.readyState !== 'complete') {
+        document.addEventListener('DOMContentLoaded', hideDesktopControls);
+    }
+    window.addEventListener('load', hideDesktopControls);
+
     // Initialize everything
     function init() {
         console.log("MOBILE CONTROLS: Initializing");
