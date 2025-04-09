@@ -20,10 +20,10 @@ let directionQueue = [];
 
 // Define different fruit types with their properties
 const fruitTypes = [
-    { type: 'regular', color: 'red', points: 10, probability: 0.7, duration: Infinity },
-    { type: 'bonus', color: 'gold', points: 30, probability: 0.15, duration: 10000 },
-    { type: 'super', color: 'purple', points: 50, probability: 0.1, duration: 7000 },
-    { type: 'mega', color: 'cyan', points: 100, probability: 0.05, duration: 5000 }
+    { type: 'regular', color: '#FF303F', points: 10, probability: 0.7, duration: Infinity },
+    { type: 'bonus', color: '#FFFC31', points: 30, probability: 0.15, duration: 10000 },
+    { type: 'super', color: '#AA00FF', points: 50, probability: 0.1, duration: 7000 },
+    { type: 'mega', color: '#00DFFC', points: 100, probability: 0.05, duration: 5000 }
 ];
 
 // Special multiplier fruit (5x points)
@@ -36,6 +36,56 @@ const multiplierValue = 5; // 5x points multiplier
 // Add interpolation variables
 let interpolationFactor = 0;
 const INTERPOLATION_SPEED = 0.2; // Controls how fast the snake moves visually
+
+// Sound effects
+const sounds = {
+    eat: new Audio('sounds/eat.mp3'),
+    bonus: new Audio('sounds/bonus.mp3'),
+    multiplier: new Audio('sounds/multiplier.mp3'),
+    gameOver: new Audio('sounds/game-over.mp3')
+};
+
+// Sound control variables
+let isMuted = false;
+const muteBtn = document.getElementById('muteBtn');
+
+// Touch control buttons
+const upBtn = document.getElementById('upBtn');
+const leftBtn = document.getElementById('leftBtn');
+const rightBtn = document.getElementById('rightBtn');
+const downBtn = document.getElementById('downBtn');
+
+// Add restart button reference
+const restartBtn = document.getElementById('restartBtn');
+
+// Add event listener for restart button
+restartBtn.addEventListener('click', () => {
+    // First stop the current game if running
+    stopGame();
+    
+    // Then start a new game
+    startGame();
+});
+
+// Play sound helper
+function playSound(sound) {
+    if (sounds[sound] && !isMuted) {
+        // Stop the sound if it's already playing
+        sounds[sound].currentTime = 0;
+        sounds[sound].play();
+    }
+}
+
+// Toggle mute function
+function toggleMute() {
+    isMuted = !isMuted;
+    muteBtn.innerHTML = isMuted ? 
+        '<i class="fas fa-volume-mute"></i>' : 
+        '<i class="fas fa-volume-up"></i>';
+}
+
+// Add mute button event listener
+muteBtn.addEventListener('click', toggleMute);
 
 // Function to start the game
 function startGame() {
@@ -146,126 +196,194 @@ startBtn.addEventListener('click', () => {
     }
 });
 
-// Function to draw the snake with interpolation
+// Function to draw the snake with neo-brutalist design
 function drawSnake() {
-    snake.forEach((segment, index) => {
+    // Get the current design
+    const design = window.getSnakeTheme ? window.getSnakeTheme() : {
+        head: '#FF5F1F',
+        headGlow: '#FF303F',
+        eyeSocket: '#000000',
+        pupilGlow: '#FFFC31'
+    };
+    
+    // Calculate pulse for animation
+    const pulseAmount = Math.sin(Date.now() / 300) * 30; // More dramatic pulse
+    
+    // First draw the snake body
+    for (let i = snake.length - 1; i > 0; i--) {
         // Calculate interpolated position for smooth movement
-        let drawX = segment.x;
-        let drawY = segment.y;
+        let drawX = snake[i].x;
+        let drawY = snake[i].y;
         
-        // Apply interpolation to the head for smoother movement
-        if (index === 0 && interpolationFactor < 1) {
-            // Get previous segment for interpolation reference
-            const prevSegment = snake.length > 1 ? snake[1] : { 
-                x: segment.x - dx, 
-                y: segment.y - dy 
-            };
-            
-            // Handle edge wrapping for smooth animation
-            let diffX = segment.x - prevSegment.x;
-            let diffY = segment.y - prevSegment.y;
-            
-            // Check for edge wrapping in X direction
-            if (Math.abs(diffX) > canvas.width / 2) {
-                // Snake wrapped around horizontally
-                if (diffX > 0) {
-                    // Moving from left edge to right edge
-                    diffX = diffX - canvas.width;
-                } else {
-                    // Moving from right edge to left edge
-                    diffX = diffX + canvas.width;
-                }
-            }
-            
-            // Check for edge wrapping in Y direction
-            if (Math.abs(diffY) > canvas.height / 2) {
-                // Snake wrapped around vertically
-                if (diffY > 0) {
-                    // Moving from top edge to bottom edge
-                    diffY = diffY - canvas.height;
-                } else {
-                    // Moving from bottom edge to top edge
-                    diffY = diffY + canvas.height;
-                }
-            }
-            
-            // Calculate interpolated position with wrap handling
-            drawX = prevSegment.x + diffX * interpolationFactor;
-            drawY = prevSegment.y + diffY * interpolationFactor;
-            
-            // Handle the drawing position wrapping around edges
-            if (drawX < 0) drawX += canvas.width;
-            if (drawX >= canvas.width) drawX -= canvas.width;
-            if (drawY < 0) drawY += canvas.height;
-            if (drawY >= canvas.height) drawY -= canvas.height;
-        }
-        
-        // Head is a different color
-        if (index === 0) {
-            ctx.fillStyle = '#28a745'; // Brighter green for head
+        // Get color from design
+        let fillColor;
+        if (design.bodyGradient) {
+            fillColor = design.bodyGradient(i, snake.length, pulseAmount);
         } else {
-            // Gradient effect for body
-            const greenValue = 120 - (index * 2);
-            ctx.fillStyle = `rgb(0, ${Math.max(greenValue, 50)}, 0)`;
+            // Default fallback
+            fillColor = '#FF5F1F';
         }
         
-        // Rounded corners for snake segments
+        // Fill style for body segments with border for neo-brutalist look
+        ctx.fillStyle = fillColor;
+        
+        // Draw rectangle for body segments (neo-brutalist uses more angular shapes)
         ctx.beginPath();
-        ctx.roundRect(drawX, drawY, gridSize, gridSize, 5);
+        ctx.rect(drawX, drawY, gridSize, gridSize);
         ctx.fill();
         
-        // Add eyes to the head
-        if (index === 0) {
-            // Determine eye position based on direction
-            const eyeSize = 3;
-            const eyeOffset = 4;
-            
-            ctx.fillStyle = 'white';
-            
-            // Left eye
-            let leftEyeX, leftEyeY;
-            // Right eye
-            let rightEyeX, rightEyeY;
-            
-            if (dx > 0) { // Moving right
-                leftEyeX = drawX + gridSize - eyeOffset;
-                leftEyeY = drawY + eyeOffset;
-                rightEyeX = drawX + gridSize - eyeOffset;
-                rightEyeY = drawY + gridSize - eyeOffset;
-            } else if (dx < 0) { // Moving left
-                leftEyeX = drawX + eyeOffset;
-                leftEyeY = drawY + eyeOffset;
-                rightEyeX = drawX + eyeOffset;
-                rightEyeY = drawY + gridSize - eyeOffset;
-            } else if (dy > 0) { // Moving down
-                leftEyeX = drawX + eyeOffset;
-                leftEyeY = drawY + gridSize - eyeOffset;
-                rightEyeX = drawX + gridSize - eyeOffset;
-                rightEyeY = drawY + gridSize - eyeOffset;
-            } else { // Moving up
-                leftEyeX = drawX + eyeOffset;
-                leftEyeY = drawY + eyeOffset;
-                rightEyeX = drawX + gridSize - eyeOffset;
-                rightEyeY = drawY + eyeOffset;
-            }
-            
-            // Draw eyes
+        // Add black border for contrast
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = design.borderWidth || 2;
+        ctx.stroke();
+        
+        // Add inner pattern for more brutalist aesthetic
+        if (i % 2 === 0) { // Alternate pattern
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
             ctx.beginPath();
-            ctx.arc(leftEyeX, leftEyeY, eyeSize, 0, Math.PI * 2);
-            ctx.arc(rightEyeX, rightEyeY, eyeSize, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Pupils
-            ctx.fillStyle = 'black';
-            ctx.beginPath();
-            ctx.arc(leftEyeX, leftEyeY, eyeSize/2, 0, Math.PI * 2);
-            ctx.arc(rightEyeX, rightEyeY, eyeSize/2, 0, Math.PI * 2);
+            ctx.rect(drawX + 5, drawY + 5, gridSize - 10, gridSize - 10);
             ctx.fill();
         }
-    });
+    }
+    
+    // Then draw the head on top
+    const head = snake[0];
+    let drawX = head.x;
+    let drawY = head.y;
+    
+    // Apply interpolation to the head for smoother movement
+    if (interpolationFactor < 1) {
+        // Get previous segment for interpolation reference
+        const prevSegment = snake.length > 1 ? snake[1] : { 
+            x: head.x - dx, 
+            y: head.y - dy 
+        };
+        
+        // Handle edge wrapping for smooth animation
+        let diffX = head.x - prevSegment.x;
+        let diffY = head.y - prevSegment.y;
+        
+        // Check for edge wrapping in X direction
+        if (Math.abs(diffX) > canvas.width / 2) {
+            // Snake wrapped around horizontally
+            if (diffX > 0) diffX = diffX - canvas.width;
+            else diffX = diffX + canvas.width;
+        }
+        
+        // Check for edge wrapping in Y direction
+        if (Math.abs(diffY) > canvas.height / 2) {
+            // Snake wrapped around vertically
+            if (diffY > 0) diffY = diffY - canvas.height;
+            else diffY = diffY + canvas.height;
+        }
+        
+        // Calculate interpolated position with wrap handling
+        drawX = prevSegment.x + diffX * interpolationFactor;
+        drawY = prevSegment.y + diffY * interpolationFactor;
+        
+        // Handle the drawing position wrapping around edges
+        if (drawX < 0) drawX += canvas.width;
+        if (drawX >= canvas.width) drawX -= canvas.width;
+        if (drawY < 0) drawY += canvas.height;
+        if (drawY >= canvas.height) drawY -= canvas.height;
+    }
+    
+    // Draw a glow effect for the head - neo-brutalist style has bold shadows
+    ctx.shadowColor = design.headGlow || '#FF303F';
+    ctx.shadowBlur = design.glowStrength || 12; // Stronger glow
+    
+    // Head style from design
+    ctx.fillStyle = design.head || '#FF5F1F';
+    
+    // Draw the head as a rectangle for brutalist aesthetic
+    ctx.beginPath();
+    ctx.rect(drawX, drawY, gridSize, gridSize);
+    ctx.fill();
+    
+    // Add black border
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = design.borderWidth + 1 || 3; // Thicker border for head
+    ctx.stroke();
+    
+    // Reset shadow
+    ctx.shadowBlur = 0;
+    
+    // Draw inner pattern for the head
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.beginPath();
+    ctx.rect(drawX + 3, drawY + 3, gridSize - 6, gridSize - 6);
+    ctx.fill();
+    
+    // Determine eye position based on direction
+    const eyeSize = 3.5;
+    const eyeOffset = 4.5;
+    
+    // Left eye
+    let leftEyeX, leftEyeY;
+    // Right eye
+    let rightEyeX, rightEyeY;
+    
+    if (dx > 0) { // Moving right
+        leftEyeX = drawX + gridSize - eyeOffset;
+        leftEyeY = drawY + eyeOffset;
+        rightEyeX = drawX + gridSize - eyeOffset;
+        rightEyeY = drawY + gridSize - eyeOffset;
+    } else if (dx < 0) { // Moving left
+        leftEyeX = drawX + eyeOffset;
+        leftEyeY = drawY + eyeOffset;
+        rightEyeX = drawX + eyeOffset;
+        rightEyeY = drawY + gridSize - eyeOffset;
+    } else if (dy > 0) { // Moving down
+        leftEyeX = drawX + eyeOffset;
+        leftEyeY = drawY + gridSize - eyeOffset;
+        rightEyeX = drawX + gridSize - eyeOffset;
+        rightEyeY = drawY + gridSize - eyeOffset;
+    } else { // Moving up
+        leftEyeX = drawX + eyeOffset;
+        leftEyeY = drawY + eyeOffset;
+        rightEyeX = drawX + gridSize - eyeOffset;
+        rightEyeY = drawY + eyeOffset;
+    }
+    
+    // Draw eye sockets - dark circles
+    ctx.fillStyle = design.eyeSocket || '#000000';
+    ctx.beginPath();
+    ctx.arc(leftEyeX, leftEyeY, eyeSize + 1, 0, Math.PI * 2);
+    ctx.arc(rightEyeX, rightEyeY, eyeSize + 1, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Draw eyes - white circles
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(leftEyeX, leftEyeY, eyeSize, 0, Math.PI * 2);
+    ctx.arc(rightEyeX, rightEyeY, eyeSize, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Draw pupils with a brutalist harsh glow
+    ctx.shadowColor = design.pupilGlow || '#FFFC31';
+    ctx.shadowBlur = 8; // Dramatic glow
+    ctx.fillStyle = 'black';
+    
+    // Calculate pupil position - makes the snake look in the direction it's moving
+    const pupilShift = 1;
+    let pupilOffsetX = 0;
+    let pupilOffsetY = 0;
+    
+    if (dx > 0) pupilOffsetX = pupilShift;
+    else if (dx < 0) pupilOffsetX = -pupilShift;
+    else if (dy > 0) pupilOffsetY = pupilShift;
+    else pupilOffsetY = -pupilShift;
+    
+    ctx.beginPath();
+    ctx.arc(leftEyeX + pupilOffsetX, leftEyeY + pupilOffsetY, eyeSize/2, 0, Math.PI * 2);
+    ctx.arc(rightEyeX + pupilOffsetX, rightEyeY + pupilOffsetY, eyeSize/2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Reset shadow
+    ctx.shadowBlur = 0;
 }
 
-// Function to draw the food
+// Function to draw the food with neo-brutalist style
 function drawFood() {
     // Safety check to make sure food has valid coordinates
     if (!food || typeof food.x === 'undefined' || typeof food.y === 'undefined') {
@@ -274,25 +392,51 @@ function drawFood() {
         return;
     }
     
+    // Get the design
+    const design = window.getSnakeTheme ? window.getSnakeTheme() : {
+        foodColors: {
+            regular: '#FF303F',
+            bonus: '#FFFC31',
+            super: '#AA00FF',
+            mega: '#00DFFC',
+            multiplier: '#FF00FF'
+        },
+        foodGlow: true
+    };
+    
     // Ensure food coordinates are aligned to grid
     food.x = Math.floor(food.x / gridSize) * gridSize;
     food.y = Math.floor(food.y / gridSize) * gridSize;
     
-    // Draw food hitbox for better visual understanding (optional)
-    // ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-    // ctx.fillRect(food.x, food.y, gridSize, gridSize);
+    // Get the appropriate color from the design
+    const foodColor = design.foodColors && design.foodColors[food.type] ? 
+                     design.foodColors[food.type] : food.color;
+                     
+    // Add glow for neo-brutalist dramatic effect if enabled in design
+    if (design.foodGlow) {
+        ctx.shadowColor = foodColor;
+        ctx.shadowBlur = 10;
+    }
     
-    // Regular food
-    ctx.fillStyle = food.color || 'red';
+    // Neo-brutalist food - angular shapes instead of circles
+    ctx.fillStyle = foodColor;
     ctx.beginPath();
-    ctx.arc(food.x + gridSize/2, food.y + gridSize/2, gridSize/2 - 2, 0, Math.PI * 2);
+    
+    // Draw a square with rotation for visual interest
+    ctx.save();
+    ctx.translate(food.x + gridSize/2, food.y + gridSize/2);
+    ctx.rotate(Math.PI / 4); // 45 degree rotation
+    ctx.rect(-gridSize/3, -gridSize/3, gridSize/1.5, gridSize/1.5);
     ctx.fill();
     
-    // Add shine to the food
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.beginPath();
-    ctx.arc(food.x + gridSize/3, food.y + gridSize/3, gridSize/6, 0, Math.PI * 2);
-    ctx.fill();
+    // Add border for neo-brutalist look
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+    
+    // Reset glow
+    ctx.shadowBlur = 0;
     
     // Draw multiplier fruit if present
     if (multiplierFruit) {
@@ -300,19 +444,19 @@ function drawFood() {
         multiplierFruit.x = Math.floor(multiplierFruit.x / gridSize) * gridSize;
         multiplierFruit.y = Math.floor(multiplierFruit.y / gridSize) * gridSize;
         
-        // Draw multiplier hitbox for better visual understanding (optional)
-        // ctx.fillStyle = 'rgba(255, 0, 255, 0.1)';
-        // ctx.fillRect(multiplierFruit.x, multiplierFruit.y, gridSize, gridSize);
-        
-        // Draw a star shape
+        // Draw a star shape with neo-brutalist style
         const centerX = multiplierFruit.x + gridSize/2;
         const centerY = multiplierFruit.y + gridSize/2;
         const spikes = 5;
         const outerRadius = gridSize/2;
         const innerRadius = gridSize/4;
         
+        // Add glow
+        ctx.shadowColor = '#FF00FF';
+        ctx.shadowBlur = 12;
+        
         ctx.beginPath();
-        ctx.fillStyle = 'magenta';
+        ctx.fillStyle = '#FF00FF';
         
         let rot = Math.PI / 2 * 3;
         let x = centerX;
@@ -337,10 +481,11 @@ function drawFood() {
         ctx.closePath();
         ctx.fill();
         
-        // Add glow effect
-        ctx.shadowColor = 'magenta';
-        ctx.shadowBlur = 10;
-        ctx.fill();
+        // Add black border
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
         ctx.shadowBlur = 0;
     }
 }
@@ -430,7 +575,7 @@ function spawnMultiplierFruit() {
             // Check if this position is free (not occupied by snake or food)
             if (!isPositionOnSnake(posX, posY) && 
                 !(food.x === posX && food.y === posY)) {
-                availablePositions.push({ x: posX, y: posY });
+                availablePositions.push({ x: posX, posY });
             }
         }
     }
@@ -459,22 +604,12 @@ function changeDirection(event) {
     if (!gameRunning || gamePaused) return;
     
     const keyPressed = event.keyCode;
-    const goingUp = dy === -gridSize;
-    const goingDown = dy === gridSize;
-    const goingRight = dx === gridSize;
-    const goingLeft = dx === -gridSize;
-
-    if (keyPressed === 37 && !goingRight) { // Left arrow
-        directionQueue.push({ dx: -gridSize, dy: 0 });
-    } else if (keyPressed === 38 && !goingDown) { // Up arrow
-        directionQueue.push({ dx: 0, dy: -gridSize });
-    } else if (keyPressed === 39 && !goingLeft) { // Right arrow
-        directionQueue.push({ dx: gridSize, dy: 0 });
-    } else if (keyPressed === 40 && !goingUp) { // Down arrow
-        directionQueue.push({ dx: 0, dy: gridSize });
-    } else if (keyPressed === 80) { // P key
-        togglePause();
-    }
+    
+    if (keyPressed === 37) handleDirection('left');      // Left arrow
+    else if (keyPressed === 38) handleDirection('up');   // Up arrow
+    else if (keyPressed === 39) handleDirection('right'); // Right arrow
+    else if (keyPressed === 40) handleDirection('down'); // Down arrow
+    else if (keyPressed === 80) togglePause();           // P key
 }
 
 // Function to process direction queue
@@ -585,6 +720,7 @@ function moveSnake() {
     if (multiplierFruit && 
         Math.abs(head.x - multiplierFruit.x) < gridSize/2 && 
         Math.abs(head.y - multiplierFruit.y) < gridSize/2) {
+        playSound('multiplier');
         // Multiply the points of the next food
         food.points *= multiplierValue;
         
@@ -597,6 +733,7 @@ function moveSnake() {
 
     // Check if the snake eats the regular food with improved detection
     if (Math.abs(head.x - food.x) < gridSize/2 && Math.abs(head.y - food.y) < gridSize/2) {
+        playSound(food.type === 'bonus' ? 'bonus' : 'eat');
         // Add points
         score += food.points;
         updateScore();
@@ -619,6 +756,7 @@ function checkCollision() {
     // Check self-collision (skip head)
     for (let i = 1; i < snake.length; i++) {
         if (head.x === snake[i].x && head.y === snake[i].y) {
+            playSound('gameOver');
             return true;
         }
     }
@@ -626,16 +764,18 @@ function checkCollision() {
     return false; // No collision
 }
 
-// Function to update the score display
+// Enhanced function for updating the score with animation
 function updateScore() {
-    scoreElement.textContent = `Score: ${score}`;
+    scoreElement.textContent = score;
+    scoreElement.classList.add('score-update');
+    setTimeout(() => scoreElement.classList.remove('score-update'), 300);
 }
 
 // Event listener for key presses
 document.addEventListener('keydown', changeDirection);
 
 // Initialize the game
-const canvasSize = 350;  // Reduced from 400
+const canvasSize = 320;  // Reduced from 350 to 320
 
 window.onload = function() {
     // Resize canvas for better fit
@@ -687,13 +827,41 @@ window.onload = function() {
     console.log(`Canvas size: ${canvas.width}x${canvas.height}, GridSize: ${gridSize}, TileCount: ${tileCount}`);
     console.log(`Initial snake position: x=${snake[0].x}, y=${snake[0].y}`);
     console.log(`Initial food position: x=${food.x}, y=${food.y}`);
+    setupTouchControls();
+    
+    // Test device type and show/hide touch controls accordingly
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const touchControls = document.querySelector('.touch-controls');
+    
+    if (isMobile) {
+        touchControls.style.display = 'grid';
+    } else {
+        touchControls.style.display = 'none';
+    }
+
+    // Set viewport height to ensure no scrolling
+    document.documentElement.style.height = '100%';
+    document.body.style.height = '100%';
+    
+    // For extremely small screens, hide guides completely
+    const viewportHeight = window.innerHeight;
+    if (viewportHeight < 650) {
+        document.querySelector('.guide-toggle').style.display = 'none';
+    }
 };
 
 // Add the following code to show game status messages
 function showGameOver() {
     const gameOverElement = document.getElementById('gameOver');
     gameOverElement.style.display = 'block';
+    playSound('gameOver');
+    
+    // Highlight the restart button to guide user
+    restartBtn.classList.add('highlight-btn');
+    
+    // Remove highlight after 1.5 seconds
     setTimeout(() => {
+        restartBtn.classList.remove('highlight-btn');
         gameOverElement.style.display = 'none';
     }, 2000);
 }
@@ -703,9 +871,83 @@ function updatePauseDisplay() {
     pauseElement.style.display = gamePaused ? 'block' : 'none';
 }
 
+// Improved mobile touch controls
+function setupTouchControls() {
+    // Swipe controls for canvas
+    const touchArea = document.getElementById('gameCanvas');
+    let startX, startY;
+    const MIN_SWIPE = 30; // Minimum swipe distance
+
+    touchArea.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+    });
+
+    touchArea.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+    });
+
+    touchArea.addEventListener('touchend', (e) => {
+        if (!startX || !startY) return;
+        
+        const touch = e.changedTouches[0];
+        const dx = touch.clientX - startX;
+        const dy = touch.clientY - startY;
+        
+        // Only register as swipe if movement is significant
+        if (Math.abs(dx) > MIN_SWIPE || Math.abs(dy) > MIN_SWIPE) {
+            if (Math.abs(dx) > Math.abs(dy)) {
+                // Horizontal swipe
+                if (dx > 0) handleDirection('right');
+                else handleDirection('left');
+            } else {
+                // Vertical swipe
+                if (dy > 0) handleDirection('down');
+                else handleDirection('up');
+            }
+        }
+        
+        startX = null;
+        startY = null;
+    });
+    
+    // Button controls for mobile
+    upBtn.addEventListener('click', () => handleDirection('up'));
+    leftBtn.addEventListener('click', () => handleDirection('left'));
+    rightBtn.addEventListener('click', () => handleDirection('right'));
+    downBtn.addEventListener('click', () => handleDirection('down'));
+}
+
+// Helper function to handle direction changes
+function handleDirection(dir) {
+    if (!gameRunning || gamePaused) return;
+    
+    const goingUp = dy === -gridSize;
+    const goingDown = dy === gridSize;
+    const goingRight = dx === gridSize;
+    const goingLeft = dx === -gridSize;
+    
+    switch(dir) {
+        case 'up':
+            if (!goingDown) directionQueue.push({ dx: 0, dy: -gridSize });
+            break;
+        case 'down':
+            if (!goingUp) directionQueue.push({ dx: 0, dy: gridSize });
+            break;
+        case 'left':
+            if (!goingRight) directionQueue.push({ dx: -gridSize, dy: 0 });
+            break;
+        case 'right':
+            if (!goingLeft) directionQueue.push({ dx: gridSize, dy: 0 });
+            break;
+    }
+}
+
 // Add visual effects to the game
 function drawGrid() {
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)'; // Slightly more visible grid
     ctx.lineWidth = 1;
     
     // Draw vertical lines
@@ -723,6 +965,23 @@ function drawGrid() {
         ctx.lineTo(canvas.width, y);
         ctx.stroke();
     }
+    
+    // Add neo-brutalist corner elements - but smaller now
+    const cornerSize = gridSize * 0.75; // Reduced corner size
+    
+    ctx.fillStyle = '#FF5F1F';
+    ctx.fillRect(0, 0, cornerSize, cornerSize);
+    ctx.fillRect(canvas.width - cornerSize, 0, cornerSize, cornerSize);
+    ctx.fillRect(0, canvas.height - cornerSize, cornerSize, cornerSize);
+    ctx.fillRect(canvas.width - cornerSize, canvas.height - cornerSize, cornerSize, cornerSize);
+    
+    // Add black borders to corner elements
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0, 0, cornerSize, cornerSize);
+    ctx.strokeRect(canvas.width - cornerSize, 0, cornerSize, cornerSize);
+    ctx.strokeRect(0, canvas.height - cornerSize, cornerSize, cornerSize);
+    ctx.strokeRect(canvas.width - cornerSize, canvas.height - cornerSize, cornerSize, cornerSize);
 }
 
 // Add debugging visualizer to show hit areas (only used when explicitly called)

@@ -7,9 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Add Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Fix the CSS link to match the filename in your directory -->
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
@@ -17,39 +15,81 @@
     <div class="game-container">
         <h1><i class="fas fa-snake"></i> Snake Game</h1>
         
-        <div class="game-canvas-wrapper">
-            <div class="score-container">Score: <span id="score">0</span></div>
-            <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <div id="score" class="score">0</div>
+        
+        <div class="game-area">
+            <canvas id="gameCanvas" width="320" height="320"></canvas>
             <div id="gamePaused" class="game-status game-paused">PAUSED</div>
             <div id="gameOver" class="game-status game-over">GAME OVER</div>
+            
+            <div class="touch-controls">
+                <button id="upBtn" class="touch-btn up-btn"><i class="fas fa-arrow-up"></i></button>
+                <button id="leftBtn" class="touch-btn left-btn"><i class="fas fa-arrow-left"></i></button>
+                <button id="rightBtn" class="touch-btn right-btn"><i class="fas fa-arrow-right"></i></button>
+                <button id="downBtn" class="touch-btn down-btn"><i class="fas fa-arrow-down"></i></button>
+            </div>
         </div>
         
-        <div class="controls">
-            <button id="startBtn"><i class="fas fa-play"></i> Start</button>
-            <div class="keyboard-shortcuts">
+        <div class="game-info">
+            <div class="controls">
+                <button id="startBtn" class="main-btn"><i class="fas fa-play"></i> Start</button>
+                <button id="restartBtn" class="secondary-btn"><i class="fas fa-redo-alt"></i></button>
+                <button id="muteBtn" class="secondary-btn"><i class="fas fa-volume-up"></i></button>
+            </div>
+            
+            <div class="guide-toggle">
+                <button id="fruitGuideBtn" class="guide-toggle-btn">Info</button>
+                <button id="keysGuideBtn" class="guide-toggle-btn">Controls</button>
+            </div>
+            
+            <div id="fruitGuide" class="fruit-guide">
+                <h3>Fruit Types:</h3>
+                <div class="fruit-list">
+                    <div class="fruit-item"><span class="fruit-dot regular"></span> Regular (10)</div>
+                    <div class="fruit-item"><span class="fruit-dot bonus"></span> Bonus (30)</div>
+                    <div class="fruit-item"><span class="fruit-dot super"></span> Super (50)</div>
+                    <div class="fruit-item"><span class="fruit-dot mega"></span> Mega (100)</div>
+                    <div class="fruit-item"><span class="fruit-dot multiplier"></span> ×5</div>
+                </div>
+            </div>
+            
+            <div id="keysGuide" class="keyboard-tip">
                 <span class="key">↑</span><span class="key">↓</span><span class="key">←</span><span class="key">→</span> Move 
                 <span class="key">P</span> Pause
                 <span class="key">R</span> Restart
             </div>
         </div>
-        
-        <div class="sidebar">
-            <div class="fruit-guide">
-                <h3><i class="fas fa-apple-alt"></i> Fruit Types:</h3>
-                <ul>
-                    <li><span class="fruit-dot regular"></span> Regular - 10 points</li>
-                    <li><span class="fruit-dot bonus"></span> Bonus - 30 points</li>
-                    <li><span class="fruit-dot super"></span> Super - 50 points</li>
-                    <li><span class="fruit-dot mega"></span> Mega - 100 points</li>
-                    <li><span class="fruit-dot multiplier"></span> Multiplier - ×5 points</li>
-                </ul>
-                <p><strong><i class="fas fa-lightbulb"></i> Tip:</strong> When a multiplier appears, decide if you want to get it first, then eat a fruit. Multipliers last only 3 seconds!</p>
-            </div>
-        </div>
     </div>
+    
     <footer>
-        <p>Created with ❤️ by sunny | <a href="https://github.com/sunnyhaladker13/snake" target="_blank">View on GitHub</a></p>
+        <p>Created by sunny | <a href="https://github.com/sunnyhaladker13/snake" target="_blank">GitHub</a></p>
     </footer>
+    
+    <script src="js/snake-neo-design.js"></script>
+    <script>
+        // Toggle guides functionality
+        document.getElementById('fruitGuideBtn').addEventListener('click', function() {
+            const fruitGuide = document.getElementById('fruitGuide');
+            const keysGuide = document.getElementById('keysGuide');
+            
+            fruitGuide.classList.toggle('show');
+            keysGuide.classList.remove('show');
+            
+            this.classList.toggle('active');
+            document.getElementById('keysGuideBtn').classList.remove('active');
+        });
+        
+        document.getElementById('keysGuideBtn').addEventListener('click', function() {
+            const fruitGuide = document.getElementById('fruitGuide');
+            const keysGuide = document.getElementById('keysGuide');
+            
+            keysGuide.classList.toggle('show');
+            fruitGuide.classList.remove('show');
+            
+            this.classList.toggle('active');
+            document.getElementById('fruitGuideBtn').classList.remove('active');
+        });
+    </script>
     <script src="game.js"></script>
 </body>
 </html>

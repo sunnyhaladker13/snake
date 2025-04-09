@@ -28,5 +28,7 @@ wget -O sounds/game-over.mp3 "https://pixabay.com/sound-effects/negative-beeps-6
 echo "Download complete!"
 echo "If some files failed to download, please manually download them from the sound sources mentioned in sounds/placeholder.txt"
 
+echo "Ensure sound files are downloaded for proper game functionality."
+
 # Make the script executable
 chmod +x "$0"
