@@ -840,10 +840,15 @@ window.onload = function() {
         // Detect if user is on mobile
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         
-        // Show instructions for mobile users if not already seen
-        if (isMobile && !localStorage.getItem('mobileInstructionsShown')) {
-            document.getElementById('mobileInstructions').style.display = 'block';
+        // MODIFIED: Always mark mobile instructions as seen to prevent showing
+        if (isMobile) {
+            localStorage.setItem('mobileInstructionsShown', 'true');
         }
+        
+        // Hide instructions for mobile users - disabled
+        // if (isMobile && !localStorage.getItem('mobileInstructionsShown')) {
+        //    document.getElementById('mobileInstructions').style.display = 'block';
+        // }
         
         // First call resize to initialize canvas and grid size
         resizeGameCanvas();

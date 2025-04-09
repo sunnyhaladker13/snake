@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Snake Game</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,11 +10,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <!-- Viewport fix should run early -->
+    <!-- Order matters: viewport fix should run first -->
     <script src="viewport-fix.js"></script>
-    <!-- Mobile sizing fixes -->
+    <!-- Add the instructions remover early in the load sequence -->
+    <script src="mobile-instructions-remover.js"></script>
+    <!-- Mobile sizing and UI optimization -->
     <script src="mobile-size-fix.js" defer></script>
     <script src="force-mobile-size.js" defer></script>
+    <script src="mobile-ui-optimizer.js" defer></script>
     <!-- Load the game and controls -->
     <script src="js/snake-neo-design.js" defer></script>
     <!-- Tap zone fixes - load in this order -->
@@ -88,8 +91,8 @@
         </div>
     </div>
     
-    <!-- Update mobile instructions overlay to match neo-brutalist style -->
-    <div id="mobileInstructions" class="mobile-instructions">
+    <!-- Apply inline style to hide mobile instructions immediately -->
+    <div id="mobileInstructions" class="mobile-instructions" style="display: none !important;">
         <button id="closeInstructions" class="close-btn">&times;</button>
         <h3>Mobile Controls</h3>
         <p><strong>• TAP</strong> on the canvas to start the game</p>

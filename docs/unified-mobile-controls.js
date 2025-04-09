@@ -426,68 +426,12 @@
     
     // Show onboarding for new users
     function showOnboarding() {
-        const hasSeenOnboarding = localStorage.getItem('onboardingShown');
-        if (hasSeenOnboarding) return;
+        // MODIFIED: Skip showing onboarding entirely
+        localStorage.setItem('onboardingShown', 'true');
+        return false;
         
-        setTimeout(() => {
-            const canvas = document.getElementById('gameCanvas');
-            if (!canvas) return;
-            
-            const canvasRect = canvas.getBoundingClientRect();
-            
-            const overlay = document.createElement('div');
-            overlay.id = 'onboardingOverlay';
-            overlay.style.cssText = `
-                position: fixed;
-                top: ${canvasRect.top}px;
-                left: ${canvasRect.left}px;
-                width: ${canvasRect.width}px;
-                height: ${canvasRect.height}px;
-                background-color: rgba(0,0,0,0.7);
-                z-index: 1000001;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            `;
-            
-            const content = document.createElement('div');
-            content.style.cssText = `
-                background-color: #252525;
-                padding: 15px;
-                border: 3px solid #FF5F1F;
-                box-shadow: 4px 4px 0 black;
-                max-width: 80%;
-                text-align: center;
-            `;
-            
-            content.innerHTML = `
-                <h3 style="color:#00DFFC; margin-top:0; text-transform:uppercase;">How to Play</h3>
-                <p style="margin:10px 0;">Tap the edges to control the snake:</p>
-                <div style="display:flex; justify-content:space-around; margin:15px 0;">
-                    <div>▲<br>UP</div>
-                    <div>▼<br>DOWN</div>
-                    <div>◀<br>LEFT</div>
-                    <div>▶<br>RIGHT</div>
-                </div>
-                <button id="gotItBtn" style="background:#FF5F1F; color:white; border:2px solid black; padding:5px 15px; font-weight:bold;">GOT IT!</button>
-            `;
-            
-            overlay.appendChild(content);
-            document.body.appendChild(overlay);
-            
-            document.getElementById('gotItBtn').addEventListener('click', function() {
-                overlay.style.opacity = '0';
-                overlay.style.transition = 'opacity 0.5s ease';
-                
-                setTimeout(() => {
-                    if (overlay.parentNode) {
-                        overlay.parentNode.removeChild(overlay);
-                    }
-                }, 500);
-                
-                localStorage.setItem('onboardingShown', 'true');
-            });
-        }, 1500);
+        // Rest of the function is skipped
+        // ...existing code...
     }
     
     // Helper function that users can call to debug mobile controls

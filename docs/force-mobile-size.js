@@ -29,26 +29,30 @@
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
         
-        // Calculate optimal game area size - use nearly full viewport width and 70% of height
-        const gameAreaWidth = viewportWidth * 0.98;
-        const gameAreaHeight = viewportHeight * 0.7;
+        // ENHANCED: Calculate optimal game area size - use even more space (85% of height)
+        const gameAreaWidth = viewportWidth;
+        const gameAreaHeight = viewportHeight * 0.85;
         
-        // Modify game area to fill more space
-        gameArea.style.width = '98%';
+        // Modify game area to fill more space - full width
+        gameArea.style.width = '100%';
         gameArea.style.height = `${gameAreaHeight}px`;
-        gameArea.style.margin = '0 auto';
-        gameArea.style.maxWidth = 'none'; // Remove any max-width restrictions
+        gameArea.style.margin = '0';
+        gameArea.style.padding = '0';
+        gameArea.style.maxWidth = 'none';
+        gameArea.style.position = 'relative';
         
-        // Modify game container to use full width
+        // Modify game container to use absolutely all available width
         if (gameContainer) {
             gameContainer.style.maxWidth = '100%';
             gameContainer.style.width = '100%';
-            gameContainer.style.padding = '0.5rem';
-            gameContainer.style.margin = '0 auto';
+            gameContainer.style.padding = '0';
+            gameContainer.style.margin = '0';
+            gameContainer.style.border = 'none';
         }
         
-        // Calculate canvas size - make it as large as possible while keeping it square
-        const canvasSize = Math.min(gameAreaWidth * 0.98, gameAreaHeight * 0.98);
+        // Calculate canvas size - make it as large as possible
+        // ENHANCED: Use 100% width instead of 98% for maximum space usage
+        const canvasSize = Math.min(gameAreaWidth, gameAreaHeight);
         
         console.log("FORCE MOBILE SIZE: Setting canvas display size to", canvasSize);
         
@@ -60,40 +64,77 @@
         canvas.style.display = 'block';
         canvas.style.margin = '0 auto';
         canvas.style.backgroundColor = '#000';
+        canvas.style.boxShadow = 'none'; // Remove any shadow
         
-        // If we have access to the canvas dimensions directly, update those too
+        // Force actual canvas dimensions (not just CSS)
+        canvas.width = Math.round(canvasSize);
+        canvas.height = Math.round(canvasSize);
+        
+        // If we have access to the resizeGameCanvas function, call it
         if (typeof window.resizeGameCanvas === 'function') {
             console.log("FORCE MOBILE SIZE: Calling game resize function");
-            window.resizeGameCanvas();
-        } else {
-            console.log("FORCE MOBILE SIZE: Manually setting canvas dimensions");
-            // Force canvas dimensions directly - will cause redraw
-            canvas.width = Math.round(canvasSize);
-            canvas.height = Math.round(canvasSize);
+            setTimeout(window.resizeGameCanvas, 50);
         }
         
         // Make scoreboard more visible on mobile
         const scoreElement = document.getElementById('score');
         if (scoreElement) {
-            scoreElement.style.fontSize = '2rem';
+            scoreElement.style.fontSize = '2.5rem';
             scoreElement.style.fontWeight = 'bold';
         }
         
         // Make buttons bigger and more tappable
         const buttons = document.querySelectorAll('button');
         buttons.forEach(btn => {
-            btn.style.padding = '0.8rem 1.5rem';
-            btn.style.fontSize = '1.3rem';
-            btn.style.margin = '0.5rem';
+            btn.style.padding = '1rem 1.8rem';
+            btn.style.fontSize = '1.4rem';
+            btn.style.margin = '0.3rem';
             btn.style.minWidth = '120px';
+            btn.style.borderWidth = '3px'; // Thicker borders for neo-brutalist look
         });
         
-        // Update tap controls if they exist
+        // Make all text bigger
+        document.querySelectorAll('h1, h2, h3').forEach(heading => {
+            heading.style.fontSize = '1.8rem';
+        });
+        
+        // Hide instructions on mobile - they take up valuable space
+        const instructions = document.querySelector('.game-info');
+        if (instructions) {
+            instructions.style.display = 'none';
+        }
+        
+        // Update tap controls sizing for the new canvas dimensions
+        updateTapControls();
+
+        return true;
+    }
+    
+    // Helper function to update tap controls sizing
+    function updateTapControls() {
+        // Update any tap controls that might exist
         if (typeof window.ensureTapZoneAlignment === 'function') {
             setTimeout(window.ensureTapZoneAlignment, 100);
         }
-
-        return true;
+        
+        // Direct update for game's tap controls - bigger tap zones
+        const tapControlsDiv = document.querySelector('.tap-controls');
+        if (tapControlsDiv) {
+            tapControlsDiv.style.width = '100%';
+            tapControlsDiv.style.height = '100%';
+            
+            // Make tap zones bigger and easier to touch
+            const tapZones = ['tapUp', 'tapDown', 'tapLeft', 'tapRight'];
+            tapZones.forEach(id => {
+                const zone = document.getElementById(id);
+                if (zone) {
+                    // Ensure each zone has proper touch styles
+                    zone.style.touchAction = 'none';
+                    zone.style.pointerEvents = 'auto';
+                    zone.style.fontSize = '32px'; // Larger direction indicators
+                }
+            });
+        }
     }
     
     // Run immediately and after delays to catch all possible initialization points
@@ -103,18 +144,21 @@
     // Run after DOM content loaded
     document.addEventListener('DOMContentLoaded', () => {
         setTimeout(forceGameSize, 100);
+        setTimeout(forceGameSize, 500);
     });
     
     // Run after window loaded
     window.addEventListener('load', () => {
         setTimeout(forceGameSize, 100);
         setTimeout(forceGameSize, 1000);
+        setTimeout(forceGameSize, 2000); // Extra attempt for slow devices
     });
     
-    // Run after orientation change
+    // Run after orientation change with multiple attempts
     window.addEventListener('orientationchange', () => {
-        setTimeout(forceGameSize, 300);
-        setTimeout(forceGameSize, 1000);
+        for (let i = 0; i < 5; i++) {
+            setTimeout(forceGameSize, 300 + (i * 500)); // Check multiple times
+        }
     });
     
     // Run on resize

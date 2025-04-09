@@ -19,8 +19,8 @@
             console.log("VIEWPORT FIX: Created missing viewport meta tag");
         }
         
-        // Set proper viewport content for modern mobile devices - no user-scalable to prevent zoom issues
-        viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+        // Set more aggressive viewport content for mobile devices
+        viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
         console.log("VIEWPORT FIX: Viewport meta tag set correctly");
         
         // Add additional meta tags for better mobile experience
@@ -43,14 +43,17 @@
             document.head.appendChild(statusBar);
         }
         
-        // Also add proper mobile touchmove handling to prevent pull-to-refresh
+        // Fix touch handling to be smoother
         document.addEventListener('touchmove', function(e) {
-            // Only prevent default on the game canvas to avoid pull-to-refresh interference
             const canvas = document.getElementById('gameCanvas');
-            if (canvas && e.target === canvas) {
-                e.preventDefault();
-            }
+            // Prevent default on the whole document for mobile
+            e.preventDefault();
         }, { passive: false });
+        
+        // Force body to full viewport height
+        document.body.style.minHeight = '100vh';
+        document.body.style.margin = '0';
+        document.body.style.padding = '0';
         
         return true;
     }
