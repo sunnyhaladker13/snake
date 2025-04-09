@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Snake Game</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,7 +22,7 @@
             <div id="gamePaused" class="game-status game-paused">PAUSED</div>
             <div id="gameOver" class="game-status game-over">GAME OVER</div>
             
-            <!-- Add tap zones for directional control -->
+            <!-- Make sure tap zones are inside the game area and correctly structured -->
             <div class="tap-controls">
                 <div id="tapUp" class="tap-zone tap-up" aria-label="Tap to move up"></div>
                 <div id="tapDown" class="tap-zone tap-down" aria-label="Tap to move down"></div>
@@ -198,6 +198,20 @@
                 document.getElementById('mobileInstructions').style.display = 'none';
             }
         });
+        
+        // Add debug feature for mobile tap zones
+        function toggleTapZoneDebug() {
+            const tapControls = document.querySelector('.tap-controls');
+            if (tapControls) {
+                tapControls.classList.toggle('debug');
+                console.log('Tap zone debug mode:', tapControls.classList.contains('debug'));
+                return tapControls.classList.contains('debug');
+            }
+            return false;
+        }
+        
+        // You can call this in the console to debug tap zones:
+        // toggleTapZoneDebug()
     </script>
     <script src="game.js"></script>
 </body>

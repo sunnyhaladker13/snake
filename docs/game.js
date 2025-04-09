@@ -885,6 +885,21 @@ window.onload = function() {
         
         // Console log game readiness
         console.log(`Game initialized - Canvas: ${canvas.width}x${canvas.height}, Grid: ${gridSize}px`);
+        
+        // Debug info to verify tap zones are properly set up
+        const tapZones = {
+            up: document.getElementById('tapUp'),
+            down: document.getElementById('tapDown'),
+            left: document.getElementById('tapLeft'),
+            right: document.getElementById('tapRight')
+        };
+        
+        console.log("Tap zones found:", {
+            up: !!tapZones.up,
+            down: !!tapZones.down,
+            left: !!tapZones.left,
+            right: !!tapZones.right
+        });
     } catch (error) {
         console.error("Error during initialization:", error);
     }
@@ -910,11 +925,13 @@ function updatePauseDisplay() {
     pauseElement.style.display = gamePaused ? 'block' : 'none';
 }
 
-// Improved mobile touch controls
+// Enhanced mobile touch controls
 function setupTouchControls() {
     // Get reference to canvas and other elements
     const touchArea = document.getElementById('gameCanvas');
     const swipeIndicator = document.getElementById('swipeIndicator');
+    
+    console.log("Setting up touch controls...");
     
     // Add tap-to-start functionality for mobile
     touchArea.addEventListener('touchend', (e) => {
@@ -988,7 +1005,7 @@ function setupTouchControls() {
         startY = null;
     });
     
-    // Enhanced tap zone controls with visual feedback
+    // Set up tap zone controls with visual feedback
     setupTapZoneControls();
     
     // Add haptic feedback
@@ -1034,38 +1051,80 @@ function setupTapZoneControls() {
     // Add visual feedback to all tap zones
     [tapUp, tapDown, tapLeft, tapRight].forEach(addTapFeedback);
     
+    // Fix: Use touchend instead of touchstart to avoid accidental swipes
+    // Also ensure we're preventing default and stopping propagation
+    
     // Add event listeners for tap zones if they exist
     if (tapUp) {
+        // Handle both touchstart and touchend to ensure responsiveness
         tapUp.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             vibrateIfPossible();
-            handleDirection('up');
+            // Visual feedback handled by addTapFeedback
+        });
+        
+        tapUp.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            // Apply direction change on touchend to avoid issues with accidental swipes
+            if (gameRunning && !gamePaused) {
+                handleDirection('up');
+            }
         });
     }
     
     if (tapDown) {
         tapDown.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             vibrateIfPossible();
-            handleDirection('down');
+        });
+        
+        tapDown.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (gameRunning && !gamePaused) {
+                handleDirection('down');
+            }
         });
     }
     
     if (tapLeft) {
         tapLeft.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             vibrateIfPossible();
-            handleDirection('left');
+        });
+        
+        tapLeft.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (gameRunning && !gamePaused) {
+                handleDirection('left');
+            }
         });
     }
     
     if (tapRight) {
         tapRight.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             vibrateIfPossible();
-            handleDirection('right');
+        });
+        
+        tapRight.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (gameRunning && !gamePaused) {
+                handleDirection('right');
+            }
         });
     }
+    
+    // Log initialization for debugging
+    console.log("Tap zone controls initialized:", 
+        { up: !!tapUp, down: !!tapDown, left: !!tapLeft, right: !!tapRight });
 }
 
 // Add visual effects to the game
