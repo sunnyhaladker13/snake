@@ -21,22 +21,26 @@
             <canvas id="gameCanvas" width="320" height="320"></canvas>
             <div id="gamePaused" class="game-status game-paused">PAUSED</div>
             <div id="gameOver" class="game-status game-over">GAME OVER</div>
-            
-            <div class="touch-controls">
-                <button id="upBtn" class="touch-btn up-btn"><i class="fas fa-arrow-up"></i></button>
-                <button id="leftBtn" class="touch-btn left-btn"><i class="fas fa-arrow-left"></i></button>
-                <button id="rightBtn" class="touch-btn right-btn"><i class="fas fa-arrow-right"></i></button>
-                <button id="downBtn" class="touch-btn down-btn"><i class="fas fa-arrow-down"></i></button>
-            </div>
         </div>
         
-        <div class="game-info">
+        <div class="controls-wrapper">
             <div class="controls">
                 <button id="startBtn" class="main-btn"><i class="fas fa-play"></i> Start</button>
                 <button id="restartBtn" class="secondary-btn"><i class="fas fa-redo-alt"></i></button>
                 <button id="muteBtn" class="secondary-btn"><i class="fas fa-volume-up"></i></button>
             </div>
             
+            <div class="touch-controls">
+                <button id="upBtn" class="touch-btn up-btn"><i class="fas fa-arrow-up"></i></button>
+                <div class="touch-middle-row">
+                    <button id="leftBtn" class="touch-btn left-btn"><i class="fas fa-arrow-left"></i></button>
+                    <button id="rightBtn" class="touch-btn right-btn"><i class="fas fa-arrow-right"></i></button>
+                </div>
+                <button id="downBtn" class="touch-btn down-btn"><i class="fas fa-arrow-down"></i></button>
+            </div>
+        </div>
+        
+        <div class="game-info">
             <div class="guide-toggle">
                 <button id="fruitGuideBtn" class="guide-toggle-btn">Info</button>
                 <button id="keysGuideBtn" class="guide-toggle-btn">Controls</button>

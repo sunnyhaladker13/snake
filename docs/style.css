@@ -167,12 +167,23 @@ canvas {
     gap: 0.5rem;
 }
 
+.controls-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0.7rem 0 0.3rem;
+    width: 100%;
+    max-width: 320px;
+    margin: 0.7rem auto 0.3rem;
+}
+
 .controls {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 0.7rem;
-    margin: 0.2rem 0;
+    margin: 0;
 }
 
 .main-btn {
@@ -221,18 +232,19 @@ canvas {
 }
 
 .touch-controls {
+    display: none; /* Hidden by default, shown on mobile */
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
     position: absolute;
     bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
-    display: none; /* Hidden on desktop, shown on mobile */
-    grid-template-areas:
-        ". up ."
-        "left . right"
-        ". down .";
-    grid-gap: 8px;
-    width: 130px;
-    height: 130px;
+}
+
+.touch-middle-row {
+    display: flex;
+    gap: 8px;
 }
 
 .touch-btn {
@@ -420,14 +432,40 @@ footer a:hover {
         max-width: 280px;
     }
     
+    .controls-wrapper {
+        max-width: 280px;
+        flex-direction: column;
+        gap: 0.7rem;
+    }
+    
     .touch-controls {
-        display: grid;
-        opacity: 1;
-        bottom: 5px;
+        display: flex;
     }
     
     .fruit-item {
         min-width: 80px;
+    }
+    
+    .game-info {
+        margin-top: 0.5rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .game-container {
+        padding: 0.6rem;
+    }
+    
+    canvas {
+        max-width: 260px;
+    }
+    
+    .controls-wrapper {
+        max-width: 260px;
+    }
+    
+    h1 {
+        font-size: 1.3rem;
     }
 }
 

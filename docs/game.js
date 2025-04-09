@@ -829,12 +829,12 @@ window.onload = function() {
     console.log(`Initial food position: x=${food.x}, y=${food.y}`);
     setupTouchControls();
     
-    // Test device type and show/hide touch controls accordingly
+    // Test device type and show touch controls on mobile
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const touchControls = document.querySelector('.touch-controls');
     
     if (isMobile) {
-        touchControls.style.display = 'grid';
+        touchControls.style.display = 'flex';
     } else {
         touchControls.style.display = 'none';
     }
