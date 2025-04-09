@@ -4,90 +4,78 @@
  */
 
 (function() {
-    console.log("EMERGENCY TAP FIX: Initializing (improved version)");
+    console.log("EMERGENCY TAP FIX: Initializing (improved direct-overlay version)");
     
     function fixTapZones() {
-        console.log("EMERGENCY TAP FIX: Running fix");
+        console.log("EMERGENCY TAP FIX: Running direct-overlay fix");
         
-        // Get critical elements
-        const gameArea = document.querySelector('.game-area');
+        // Get the critical elements
         const canvas = document.getElementById('gameCanvas');
+        const gameArea = document.querySelector('.game-area');
         
-        if (!gameArea || !canvas) {
-            console.error("EMERGENCY TAP FIX: Could not find game area or canvas");
+        if (!canvas || !gameArea) {
+            console.error("EMERGENCY TAP FIX: Critical elements not found");
             return false;
         }
         
-        // Get canvas position and dimensions
+        // Get dimensions
         const canvasRect = canvas.getBoundingClientRect();
-        const gameAreaRect = gameArea.getBoundingClientRect();
         
-        console.log("EMERGENCY TAP FIX: Canvas position:", {
-            top: canvasRect.top,
-            left: canvasRect.left,
-            width: canvasRect.width,
-            height: canvasRect.height,
-            bottom: canvasRect.bottom,
-            right: canvasRect.right
-        });
-        
-        // Get or create tap controls container
-        let tapControls = document.querySelector('.tap-controls');
-        if (!tapControls) {
-            console.log("EMERGENCY TAP FIX: Creating new tap-controls container");
-            tapControls = document.createElement('div');
-            tapControls.className = 'tap-controls';
-            gameArea.appendChild(tapControls);
+        // CRITICAL CHANGE: Create a completely new tap controls container
+        // Remove any existing tap controls first
+        const oldControls = document.querySelector('.tap-controls');
+        if (oldControls) {
+            oldControls.parentNode.removeChild(oldControls);
+            console.log("EMERGENCY TAP FIX: Removed old tap controls");
         }
         
-        // Position the tap controls exactly over the canvas
-        // Calculate position relative to game area
-        const topOffset = canvasRect.top - gameAreaRect.top;
-        const leftOffset = canvasRect.left - gameAreaRect.left;
+        // Create fresh tap controls directly on the canvas
+        const tapControls = document.createElement('div');
+        tapControls.className = 'tap-controls';
+        tapControls.id = 'tapControls';
         
-        // Apply critical positioning to container - absolute position using exact pixel values
+        // Style it to exactly match the canvas
         tapControls.style.cssText = `
             position: absolute !important;
-            top: ${topOffset}px !important;
-            left: ${leftOffset}px !important;
-            width: ${canvasRect.width}px !important;
-            height: ${canvasRect.height}px !important;
-            z-index: 100 !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 1000 !important;
             pointer-events: none !important;
             display: block !important;
+            touch-action: none !important;
         `;
         
-        console.log("EMERGENCY TAP FIX: Positioned tap controls at:", {
-            top: topOffset + "px",
-            left: leftOffset + "px",
-            width: canvasRect.width + "px",
-            height: canvasRect.height + "px"
-        });
+        // Insert it directly inside the canvas's parent
+        canvas.parentNode.appendChild(tapControls);
         
-        // Tap zone definitions
+        // Position it to overlay the canvas perfectly
+        positionTapControlsOverCanvas(tapControls, canvas);
+        
+        console.log("EMERGENCY TAP FIX: New tap controls created and positioned");
+        
+        // Define tap zones
         const zones = [
-            { id: 'tapUp', dir: 'up', css: 'top:0; left:25%; width:50%; height:33%;', text: '▲' },
-            { id: 'tapDown', dir: 'down', css: 'bottom:0; left:25%; width:50%; height:33%;', text: '▼' },
-            { id: 'tapLeft', dir: 'left', css: 'top:33%; left:0; width:25%; height:34%;', text: '◀' },
-            { id: 'tapRight', dir: 'right', css: 'top:33%; right:0; width:25%; height:34%;', text: '▶' }
+            { id: 'tapUp', dir: 'up', text: '▲', pos: {top: '0%', left: '25%', width: '50%', height: '33%'} },
+            { id: 'tapDown', dir: 'down', text: '▼', pos: {top: '67%', left: '25%', width: '50%', height: '33%'} },
+            { id: 'tapLeft', dir: 'left', text: '◀', pos: {top: '33%', left: '0%', width: '25%', height: '34%'} },
+            { id: 'tapRight', dir: 'right', text: '▶', pos: {top: '33%', left: '75%', width: '25%', height: '34%'} }
         ];
         
-        // Process each zone
+        // Create each tap zone
         zones.forEach(zone => {
-            // Get or create the element
-            let el = document.getElementById(zone.id);
-            if (!el) {
-                console.log(`EMERGENCY TAP FIX: Creating ${zone.id}`);
-                el = document.createElement('div');
-                el.id = zone.id;
-                el.className = `tap-zone tap-${zone.dir}`;
-                tapControls.appendChild(el);
-            }
+            const el = document.createElement('div');
+            el.id = zone.id;
+            el.className = `tap-zone tap-${zone.dir}`;
             
-            // Apply core styles
+            // Position and style the tap zone
             el.style.cssText = `
                 position: absolute !important;
-                ${zone.css}
+                top: ${zone.pos.top} !important;
+                left: ${zone.pos.left} !important;
+                width: ${zone.pos.width} !important;
+                height: ${zone.pos.height} !important;
                 pointer-events: auto !important;
                 display: flex !important;
                 align-items: center !important;
@@ -96,118 +84,120 @@
                 color: rgba(255, 255, 255, 0.7) !important;
                 background-color: rgba(255, 255, 255, 0.1) !important;
                 border: 1px solid rgba(255, 255, 255, 0.3) !important;
-                z-index: 110 !important;
+                z-index: 1010 !important;
+                user-select: none !important;
+                touch-action: none !important;
+                -webkit-tap-highlight-color: transparent !important;
             `;
-            el.textContent = zone.text;
             
-            // Set up event handlers - make them direct and simple
-            el.onclick = function(e) {
-                if (e) e.stopPropagation();
+            el.textContent = zone.text;
+            tapControls.appendChild(el);
+            
+            // Add multiple event handlers for maximum compatibility
+            el.setAttribute('onclick', `window.handleDirection('${zone.dir}'); event.preventDefault(); return false;`);
+            
+            el.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
                 console.log(`EMERGENCY TAP FIX: Clicked ${zone.dir}`);
                 if (window.handleDirection) window.handleDirection(zone.dir);
-            };
+            }, false);
             
-            // Use both touchstart/end and direct onclick for maximum compatibility
-            el.ontouchstart = function(e) {
-                if (e && e.preventDefault) e.preventDefault();
+            el.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
                 this.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
-            };
+            }, {passive: false});
             
-            el.ontouchend = function(e) {
-                if (e && e.preventDefault) e.preventDefault();
+            el.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
                 this.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
                 console.log(`EMERGENCY TAP FIX: Touch on ${zone.dir}`);
                 if (window.handleDirection) window.handleDirection(zone.dir);
-            };
+            }, {passive: false});
+            
+            console.log(`EMERGENCY TAP FIX: Created ${zone.id}`);
         });
         
-        // Make sure tap zones are visible by adding debug function
-        window.showTapZones = function(show) {
-            const visibility = show ? '0.3' : '0.1';
-            zones.forEach(zone => {
-                const el = document.getElementById(zone.id);
-                if (el) {
-                    el.style.backgroundColor = `rgba(255, 255, 255, ${visibility})`;
-                    el.style.border = show ? '2px solid white' : '1px solid rgba(255, 255, 255, 0.3)';
-                }
-            });
-            return "Tap zones " + (show ? "highlighted" : "normal");
-        };
+        console.log("EMERGENCY TAP FIX: All zones created and positioned");
         
-        console.log("EMERGENCY TAP FIX: Fix applied successfully (call window.showTapZones(true) to highlight)");
         return true;
     }
     
-    // Run immediately 
+    // Helper function to position tap controls precisely over canvas
+    function positionTapControlsOverCanvas(tapControls, canvas) {
+        const canvasRect = canvas.getBoundingClientRect();
+        
+        // Position using the canvas position and size
+        const overlayStyle = {
+            position: 'absolute',
+            top: canvas.offsetTop + 'px',
+            left: canvas.offsetLeft + 'px',
+            width: canvas.offsetWidth + 'px',
+            height: canvas.offsetHeight + 'px',
+            zIndex: 1000
+        };
+        
+        // Apply styles
+        Object.assign(tapControls.style, overlayStyle);
+        
+        console.log("EMERGENCY TAP FIX: Positioned tap controls at:", {
+            top: overlayStyle.top,
+            left: overlayStyle.left,
+            width: overlayStyle.width,
+            height: overlayStyle.height
+        });
+    }
+    
+    // Execute fix
     fixTapZones();
     
-    // And also after everything is loaded
+    // Re-run when everything is fully loaded
     window.addEventListener('load', function() {
         setTimeout(fixTapZones, 500);
     });
     
-    // Add a resize listener to ensure tap zones stay aligned with canvas
+    // Re-run on resize and orientation change
     window.addEventListener('resize', function() {
-        setTimeout(fixTapZones, 100);
+        setTimeout(fixTapZones, 200);
     });
     
-    // Also reposition after orientation changes
     window.addEventListener('orientationchange', function() {
-        // Wait longer for orientation change as it takes time to complete
-        setTimeout(fixTapZones, 300);
+        setTimeout(fixTapZones, 500);
     });
     
-    // Make available globally
+    // Make functions available globally
     window.emergencyTapFix = fixTapZones;
     
-    // Add a verification function that users can call from the console
-    window.verifyTapZones = function() {
-        const canvas = document.getElementById('gameCanvas');
-        const tapControls = document.querySelector('.tap-controls');
+    // Add utility to toggle visibility for debugging
+    window.toggleTapZonesVisibility = function(visible) {
+        const opacity = visible ? '0.3' : '0.1';
+        const borderWidth = visible ? '3px' : '1px';
         
-        if (!canvas || !tapControls) {
-            console.error("Canvas or tap controls not found");
-            return false;
-        }
+        document.querySelectorAll('.tap-zone').forEach(zone => {
+            zone.style.backgroundColor = `rgba(255, 255, 255, ${opacity})`;
+            zone.style.border = `${borderWidth} solid rgba(255, 255, 255, ${visible ? '0.8' : '0.3'})`;
+        });
         
-        const canvasRect = canvas.getBoundingClientRect();
-        const tapRect = tapControls.getBoundingClientRect();
-        
-        const result = {
-            canvasPosition: {
-                top: canvasRect.top,
-                left: canvasRect.left,
-                width: canvasRect.width,
-                height: canvasRect.height
-            },
-            tapControlsPosition: {
-                top: tapRect.top,
-                left: tapRect.left,
-                width: tapRect.width,
-                height: tapRect.height
-            },
-            alignment: {
-                topDiff: Math.abs(canvasRect.top - tapRect.top),
-                leftDiff: Math.abs(canvasRect.left - tapRect.left),
-                widthDiff: Math.abs(canvasRect.width - tapRect.width),
-                heightDiff: Math.abs(canvasRect.height - tapRect.height)
+        return `Tap zones ${visible ? 'highlighted' : 'normal'}`;
+    };
+    
+    // Add a backup handleDirection function if it doesn't exist
+    if (typeof window.handleDirection !== 'function') {
+        window.handleDirection = function(dir) {
+            console.log(`EMERGENCY direction handler: ${dir}`);
+            if (window.directionQueue) {
+                let dx = 0, dy = 0;
+                switch(dir) {
+                    case 'up': dy = -20; break;
+                    case 'down': dy = 20; break;
+                    case 'left': dx = -20; break;
+                    case 'right': dx = 20; break;
+                }
+                window.directionQueue.push({dx, dy});
+                console.log("Direction queued:", dir);
             }
         };
-        
-        const isAligned = result.alignment.topDiff < 5 && 
-                          result.alignment.leftDiff < 5 && 
-                          result.alignment.widthDiff < 5 && 
-                          result.alignment.heightDiff < 5;
-                          
-        console.log("Tap zones aligned with canvas:", isAligned ? "YES ✅" : "NO ❌");
-        console.table(result.alignment);
-        
-        if (!isAligned) {
-            console.log("Fixing alignment...");
-            fixTapZones();
-            return "Attempted to fix alignment issues";
-        }
-        
-        return "Tap zones are properly aligned";
-    };
+    }
 })();
