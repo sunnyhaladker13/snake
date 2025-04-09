@@ -40,18 +40,22 @@
         // Ensure black background on canvas
         canvas.style.backgroundColor = '#000';
         
-        // Calculate the ideal size for the canvas - optimize for mobile viewing
+        // Calculate the ideal size for the canvas - MAXIMIZE USAGE OF AVAILABLE SPACE
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
         
-        // Use a higher percentage of available space
+        // Make game area bigger to use more space
+        gameArea.style.width = '100%';
+        gameArea.style.maxWidth = '100%';
+        gameArea.style.height = `${viewportHeight * 0.7}px`; // Use 70% of viewport height
+        
+        // Calculate the new ideal size - use nearly all of the game area
         const idealSize = Math.min(
             gameArea.clientWidth * 0.98,  // 98% of game area width
-            gameArea.clientHeight * 0.98, // 98% of game area height
-            viewportWidth * 0.95          // Limit to 95% of viewport width
+            gameArea.clientHeight * 0.98  // 98% of game area height
         );
         
-        // Apply the size directly to the canvas
+        // Apply the size directly to the canvas - make it as big as possible
         if (idealSize > 0) {
             canvas.style.width = `${idealSize}px`;
             canvas.style.height = `${idealSize}px`;
@@ -62,25 +66,21 @@
             });
         }
         
-        // Ensure the game area height is sufficient - use a larger percentage of viewport
-        const minGameAreaHeight = Math.max(idealSize + 20, viewportHeight * 0.75);
-        if (gameArea.clientHeight < minGameAreaHeight) {
-            gameArea.style.height = `${minGameAreaHeight}px`;
-            console.log("MOBILE SIZE FIX: Adjusted game area height to", gameArea.style.height);
-        }
-
         // Make the game container bigger to better fit the mobile screen
         const gameContainer = document.querySelector('.game-container');
         if (gameContainer) {
-            gameContainer.style.maxWidth = '95%';
+            gameContainer.style.maxWidth = '100%';
             gameContainer.style.width = '100%';
+            gameContainer.style.padding = '0';
+            gameContainer.style.margin = '0 auto';
         }
         
         // Make buttons larger and more tappable on mobile
         const buttons = document.querySelectorAll('.main-btn, .secondary-btn');
         buttons.forEach(btn => {
-            btn.style.padding = '0.6rem 1.3rem';
-            btn.style.fontSize = '1.2rem';
+            btn.style.padding = '0.8rem 1.5rem';
+            btn.style.fontSize = '1.4rem';
+            btn.style.margin = '0.5rem';
         });
 
         // Ensure tap zones are aligned after resizing
@@ -88,41 +88,35 @@
             window.ensureTapZoneAlignment();
         }
         
-        // Force black background on canvas - both via style and directly on the element
+        // Force black background on canvas
         canvas.style.backgroundColor = '#000';
         
-        // Also try to redraw the canvas with black background
-        setTimeout(() => {
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-                // Save current transform
-                ctx.save();
-                
-                // Use identity transform while clearing the canvas
-                ctx.setTransform(1, 0, 0, 1, 0, 0);
-                
-                // Clear to black
-                ctx.fillStyle = '#000';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Restore transform
-                ctx.restore();
-                
-                console.log("MOBILE SIZE FIX: Applied black background to canvas context");
-            }
-        }, 100);
+        // Force canvas redraw with correct dimensions
+        if (typeof window.resizeGameCanvas === 'function') {
+            window.resizeGameCanvas();
+        }
+        
+        // Try to apply actual canvas dimensions (not just CSS)
+        if (idealSize > 0) {
+            const pixelRatio = window.devicePixelRatio || 1;
+            // Set actual canvas dimensions
+            canvas.width = Math.round(idealSize * pixelRatio);
+            canvas.height = Math.round(idealSize * pixelRatio);
+        }
     }
     
-    // Run on load and after a delay
-    window.addEventListener('load', () => {
+    // Run immediately and after DOM loaded
+    setTimeout(fixCanvasSize, 100);
+    document.addEventListener('DOMContentLoaded', () => {
         setTimeout(fixCanvasSize, 300);
-        setTimeout(fixCanvasSize, 1000); // Additional delay to ensure it works
     });
     
-    // Run immediately if DOM is already loaded
-    if (document.readyState !== 'loading') {
-        setTimeout(fixCanvasSize, 100);
-    }
+    // Run on load and after delays
+    window.addEventListener('load', () => {
+        setTimeout(fixCanvasSize, 300);
+        setTimeout(fixCanvasSize, 1000);
+        setTimeout(fixCanvasSize, 2000);  // Try again later for slow devices
+    });
     
     // Run on resize and orientation change
     window.addEventListener('resize', () => {
@@ -133,7 +127,7 @@
         // Run multiple times after orientation change
         setTimeout(fixCanvasSize, 300);
         setTimeout(fixCanvasSize, 1000);
-        setTimeout(fixCanvasSize, 2000); // Additional delay for orientation changes
+        setTimeout(fixCanvasSize, 2000);
     });
     
     // Expose function to window for manual calls

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Snake Game</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,47 +10,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <script>
-        // Priority fix for mobile tap controls
-        window.mobileControlsEnabled = false;
-        
-        function enableMobileControls() {
-            if (window.mobileControlsEnabled) return;
-            window.mobileControlsEnabled = true;
-            
-            // Simple direct handlers
-            window.handleDirection = function(direction) {
-                console.log("Mobile control: " + direction);
-                
-                // Convert direction to dx/dy for the game
-                let newDx = 0, newDy = 0;
-                
-                switch(direction) {
-                    case 'up': newDy = -20; break;
-                    case 'down': newDy = 20; break;
-                    case 'left': newDx = -20; break;
-                    case 'right': newDx = 20; break;
-                }
-                
-                // Add to queue if it exists
-                if (window.directionQueue && Array.isArray(window.directionQueue)) {
-                    window.directionQueue.push({dx: newDx, dy: newDy});
-                    console.log("Direction queued: " + direction);
-                } else {
-                    console.warn("Direction queue not available");
-                }
-            };
-            
-            console.log("Mobile controls enabled");
-        }
-        
-        // Enable immediately for mobile
-        if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-            enableMobileControls();
-        }
-    </script>
+    <!-- Viewport fix should run early -->
+    <script src="viewport-fix.js"></script>
+    <!-- Mobile sizing fixes -->
+    <script src="mobile-size-fix.js" defer></script>
+    <script src="force-mobile-size.js" defer></script>
+    <!-- Load the game and controls -->
     <script src="js/snake-neo-design.js" defer></script>
-    <!-- Tap zone fixes - load in this order to ensure compatibility -->
+    <!-- Tap zone fixes - load in this order -->
     <script src="tap-zones-fix.js" defer></script>
     <script src="direct-tap-controller.js" defer></script>
 </head>
@@ -139,7 +106,6 @@
     
     <!-- Mobile-specific Scripts -->
     <script src="unified-mobile-controls.js"></script>
-    <script src="mobile-size-fix.js"></script>
     <script src="tap-onboarding.js"></script>
     <script src="ios-touch-helper.js"></script>
 </body>
