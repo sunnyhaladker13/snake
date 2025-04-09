@@ -4,7 +4,7 @@ A classic Snake Game built with JavaScript, HTML5 Canvas, and CSS.
 
 ## Play Online
 
-You can play the game online at: [https://YOUR_USERNAME.github.io/snake/](https://YOUR_USERNAME.github.io/snake/)
+You can play the game online at: [https://sunnyhaladker13.github.io/snake/](https://sunnyhaladker13.github.io/snake/)
 
 ## Features
 
