@@ -10,6 +10,45 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <script>
+        // Priority fix for mobile tap controls
+        window.mobileControlsEnabled = false;
+        
+        function enableMobileControls() {
+            if (window.mobileControlsEnabled) return;
+            window.mobileControlsEnabled = true;
+            
+            // Simple direct handlers
+            window.handleDirection = function(direction) {
+                console.log("Mobile control: " + direction);
+                
+                // Convert direction to dx/dy for the game
+                let newDx = 0, newDy = 0;
+                
+                switch(direction) {
+                    case 'up': newDy = -20; break;
+                    case 'down': newDy = 20; break;
+                    case 'left': newDx = -20; break;
+                    case 'right': newDx = 20; break;
+                }
+                
+                // Add to queue if it exists
+                if (window.directionQueue && Array.isArray(window.directionQueue)) {
+                    window.directionQueue.push({dx: newDx, dy: newDy});
+                    console.log("Direction queued: " + direction);
+                } else {
+                    console.warn("Direction queue not available");
+                }
+            };
+            
+            console.log("Mobile controls enabled");
+        }
+        
+        // Enable immediately for mobile
+        if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            enableMobileControls();
+        }
+    </script>
 </head>
 <body>
     <div class="game-container">
@@ -22,12 +61,16 @@
             <div id="gamePaused" class="game-status game-paused">PAUSED</div>
             <div id="gameOver" class="game-status game-over">GAME OVER</div>
             
-            <!-- Fixed tap controls with correct structure -->
+            <!-- Enhanced tap controls with direct inline handlers -->
             <div class="tap-controls" id="tapControls" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none;">
-                <div id="tapUp" class="tap-zone tap-up" style="position: absolute; top: 0; left: 25%; width: 50%; height: 33%; pointer-events: auto;">▲</div>
-                <div id="tapDown" class="tap-zone tap-down" style="position: absolute; bottom: 0; left: 25%; width: 50%; height: 33%; pointer-events: auto;">▼</div>
-                <div id="tapLeft" class="tap-zone tap-left" style="position: absolute; top: 33%; left: 0; width: 25%; height: 34%; pointer-events: auto;">◀</div>
-                <div id="tapRight" class="tap-zone tap-right" style="position: absolute; top: 33%; right: 0; width: 25%; height: 34%; pointer-events: auto;">▶</div>
+                <div id="tapUp" class="tap-zone tap-up" style="position: absolute; top: 0; left: 25%; width: 50%; height: 33%; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 24px;" 
+                     onclick="if(window.handleDirection) window.handleDirection('up');">▲</div>
+                <div id="tapDown" class="tap-zone tap-down" style="position: absolute; bottom: 0; left: 25%; width: 50%; height: 33%; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 24px;" 
+                     onclick="if(window.handleDirection) window.handleDirection('down');">▼</div>
+                <div id="tapLeft" class="tap-zone tap-left" style="position: absolute; top: 33%; left: 0; width: 25%; height: 34%; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 24px;" 
+                     onclick="if(window.handleDirection) window.handleDirection('left');">◀</div>
+                <div id="tapRight" class="tap-zone tap-right" style="position: absolute; top: 33%; right: 0; width: 25%; height: 34%; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 24px;" 
+                     onclick="if(window.handleDirection) window.handleDirection('right');">▶</div>
             </div>
             
             <div id="swipeIndicator" class="swipe-indicator">
@@ -89,6 +132,7 @@
     </footer>
     
     <script src="js/snake-neo-design.js"></script>
+    
     <script>
         // Toggle guides functionality
         document.getElementById('fruitGuideBtn').addEventListener('click', function() {
@@ -211,11 +255,10 @@
         
         // Add this to make debugging easier from console
         window.toggleTapControls = toggleTapZoneDebug;
-        
-        // You can call this in the console to debug tap zones:
-        // toggleTapZoneDebug()
     </script>
+    
     <script src="game.js"></script>
+    
     <script>
         // Emergency fix for mobile - this ensures tap zones work
         function fixMobileTapZones() {
@@ -299,5 +342,6 @@
     <!-- Additional scripts -->
     <script src="debug.js"></script>
     <script src="fix-taps.js"></script>
+    <script src="mobile-controls.js"></script>
 </body>
 </html>

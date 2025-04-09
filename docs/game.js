@@ -1274,6 +1274,20 @@ function resizeGameCanvas() {
             console.log("Tap zones positioned after canvas resize");
         }
     }, 50);
+
+    // Add this at the end of the function - CRITICAL FIX
+    setTimeout(function() {
+        // Call setupTapZoneControls to refresh tap controls
+        setupTapZoneControls();
+        
+        // Double-check that window.handleDirection is accessible
+        if (typeof window.handleDirection !== 'function') {
+            console.error("window.handleDirection is not a function - fixing now");
+            window.handleDirection = handleDirection;
+        }
+        
+        console.log("Tap controls refreshed after canvas resize");
+    }, 100);
 }
 
 // Helper function to clear the canvas
@@ -1862,6 +1876,135 @@ function setupTapZoneControls() {
             zone.style.backgroundColor = "rgba(255, 255, 255, 0.05)";
             zone.style.border = "1px solid rgba(255, 255, 255, 0.2)";
             zone.style.cursor = "pointer";
+        }
+    });
+    
+    console.log("Tap zone controls set up successfully");
+}
+
+// CRITICAL FIX: Export handleDirection to window object so it can be called from other scripts
+window.handleDirection = function(dir) {
+    if (!gameRunning || gamePaused) return;
+    
+    const goingUp = dy === -gridSize;
+    const goingDown = dy === gridSize;
+    const goingRight = dx === gridSize;
+    const goingLeft = dx === -gridSize;
+    
+    console.log(`Direction requested: ${dir}, Current direction: dx=${dx}, dy=${dy}`);
+    
+    switch(dir) {
+        case 'up':
+            if (!goingDown) {
+                directionQueue.push({ dx: 0, dy: -gridSize });
+                console.log("Queued UP direction");
+            }
+            break;
+        case 'down':
+            if (!goingUp) {
+                directionQueue.push({ dx: 0, dy: gridSize });
+                console.log("Queued DOWN direction");
+            }
+            break;
+        case 'left':
+            if (!goingRight) {
+                directionQueue.push({ dx: -gridSize, dy: 0 });
+                console.log("Queued LEFT direction");
+            }
+            break;
+        case 'right':
+            if (!goingLeft) {
+                directionQueue.push({ dx: gridSize, dy: 0 });
+                console.log("Queued RIGHT direction");
+            }
+            break;
+    }
+};
+
+// Export directionQueue to window for emergency access
+window.directionQueue = directionQueue;
+
+// Fix setupTapZoneControls to ensure it really works
+function setupTapZoneControls() {
+    console.log("Setting up simplified tap controls");
+    
+    // Get tap zones
+    const tapUp = document.getElementById('tapUp');
+    const tapDown = document.getElementById('tapDown');
+    const tapLeft = document.getElementById('tapLeft');
+    const tapRight = document.getElementById('tapRight');
+    
+    // Log what we found
+    console.log("Looking for tap zones:", {
+        up: !!tapUp,
+        down: !!tapDown,
+        left: !!tapLeft,
+        right: !!tapRight
+    });
+    
+    // Exit if not found
+    if (!tapUp || !tapDown || !tapLeft || !tapRight) {
+        console.error("Some tap zones are missing!");
+        return;
+    }
+    
+    // Create simple event handler with fail-safe debug logging
+    function createHandler(direction) {
+        return function(e) {
+            if (e) e.preventDefault(); // Prevent default to avoid double actions
+            console.log("Tap direction:", direction);
+            
+            // Call global handleDirection function
+            window.handleDirection(direction);
+        };
+    }
+    
+    // First, reset all existing event handlers
+    [tapUp, tapDown, tapLeft, tapRight].forEach(zone => {
+        if (!zone) return;
+        
+        // Clone and replace to remove all event handlers
+        const clone = zone.cloneNode(true);
+        zone.parentNode.replaceChild(clone, zone);
+    });
+    
+    // Get fresh references after replacing
+    const freshTapUp = document.getElementById('tapUp');
+    const freshTapDown = document.getElementById('tapDown');
+    const freshTapLeft = document.getElementById('tapLeft');
+    const freshTapRight = document.getElementById('tapRight');
+    
+    // Attach handlers directly using inline attributes too
+    freshTapUp.setAttribute('onclick', "window.handleDirection('up')");
+    freshTapDown.setAttribute('onclick', "window.handleDirection('down')");
+    freshTapLeft.setAttribute('onclick', "window.handleDirection('left')");
+    freshTapRight.setAttribute('onclick', "window.handleDirection('right')");
+    
+    // Also attach modern event listeners
+    freshTapUp.addEventListener('click', createHandler('up'), false);
+    freshTapDown.addEventListener('click', createHandler('down'), false);
+    freshTapLeft.addEventListener('click', createHandler('left'), false);
+    freshTapRight.addEventListener('click', createHandler('right'), false);
+    
+    // Also add touch events specifically
+    freshTapUp.addEventListener('touchend', createHandler('up'), false);
+    freshTapDown.addEventListener('touchend', createHandler('down'), false);
+    freshTapLeft.addEventListener('touchend', createHandler('left'), false);
+    freshTapRight.addEventListener('touchend', createHandler('right'), false);
+    
+    // Style them for better visibility 
+    [freshTapUp, freshTapDown, freshTapLeft, freshTapRight].forEach(zone => {
+        if (zone) {
+            // Fix the tap zone appearance
+            zone.style.display = "flex";
+            zone.style.alignItems = "center";
+            zone.style.justifyContent = "center";
+            zone.style.fontSize = "24px";
+            zone.style.color = "rgba(255, 255, 255, 0.7)";
+            zone.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
+            zone.style.border = "1px solid rgba(255, 255, 255, 0.3)";
+            zone.style.cursor = "pointer";
+            zone.style.touchAction = "none"; // Critical for iOS touch handling
         }
     });
     
