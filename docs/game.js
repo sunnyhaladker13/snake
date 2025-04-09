@@ -954,207 +954,87 @@ function updatePauseDisplay() {
 
 // Enhanced mobile touch controls
 function setupTouchControls() {
-    // Get reference to canvas and other elements
-    const touchArea = document.getElementById('gameCanvas');
-    const swipeIndicator = document.getElementById('swipeIndicator');
-    
-    console.log("Setting up touch controls...");
-    
-    // Add tap-to-start functionality for mobile
-    touchArea.addEventListener('touchend', (e) => {
-        // If game is not running, tap anywhere on canvas to start
-        if (!gameRunning) {
-            e.preventDefault();
-            startGame();
-            return;
-        }
-        
-        // Rest of touch handling code for when game is running...
-        if (!startX || !startY) return;
-        
-        // ...existing swipe handling code...
-    });
-    
-    // Swipe gesture controls
-    let startX, startY;
-    const MIN_SWIPE = 30; // Minimum swipe distance
+    console.log("Setting up touch controls (simplified)");
 
-    touchArea.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        
-        // If game is not running, just return (the touchend will handle starting)
-        if (!gameRunning) return;
-        
-        const touch = e.touches[0];
-        startX = touch.clientX;
-        startY = touch.clientY;
-        
-        // Show the swipe indicator briefly on first touch
-        if (gameRunning && !localStorage.getItem('swipeInstructionShown')) {
-            if (swipeIndicator) {
-                swipeIndicator.classList.add('visible');
-                setTimeout(() => {
-                    swipeIndicator.classList.remove('visible');
-                    localStorage.setItem('swipeInstructionShown', 'true');
-                }, 2000);
-            }
-        }
-    });
-
-    touchArea.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-    });
-
-    touchArea.addEventListener('touchend', (e) => {
-        if (!startX || !startY) return;
-        
-        const touch = e.changedTouches[0];
-        const dx = touch.clientX - startX;
-        const dy = touch.clientY - startY;
-        
-        // Only register as swipe if movement is significant
-        if (Math.abs(dx) > MIN_SWIPE || Math.abs(dy) > MIN_SWIPE) {
-            // Provide haptic feedback
-            vibrateIfPossible();
-            
-            if (Math.abs(dx) > Math.abs(dy)) {
-                // Horizontal swipe
-                if (dx > 0) handleDirection('right');
-                else handleDirection('left');
-            } else {
-                // Vertical swipe
-                if (dy > 0) handleDirection('down');
-                else handleDirection('up');
-            }
-        }
-        
-        startX = null;
-        startY = null;
-    });
-    
-    // Set up tap zone controls with visual feedback
+    // Setup basic tap controls
     setupTapZoneControls();
     
-    // Add haptic feedback
-    function vibrateIfPossible() {
-        if ('vibrate' in navigator) {
-            navigator.vibrate(30); // Short vibration for 30ms
+    // Swipe on the canvas only - no complex logic
+    const canvas = document.getElementById('gameCanvas');
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    canvas.addEventListener('touchstart', function(e) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    }, false);
+
+    canvas.addEventListener('touchend', function(e) {
+        if (!gameRunning || gamePaused) return;
+        
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        
+        const diffX = touchEndX - touchStartX;
+        const diffY = touchEndY - touchStartY;
+        
+        // Simple swipe detection with minimum threshold
+        if (Math.abs(diffX) > 30 || Math.abs(diffY) > 30) {
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                // Horizontal swipe
+                handleDirection(diffX > 0 ? 'right' : 'left');
+            } else {
+                // Vertical swipe
+                handleDirection(diffY > 0 ? 'down' : 'up');
+            }
         }
-    }
+    }, false);
+
+    console.log("Touch controls setup complete");
 }
 
-// Separate function for tap zone controls
+// Replace the setupTapZoneControls function with a drastically simplified version
 function setupTapZoneControls() {
-    console.log("Setting up tap controls with direct event binding");
+    console.log("Setting up simplified tap controls");
     
-    // Use direct DOM queries rather than cached variables
+    // Get the touch zones directly
     const tapUp = document.getElementById('tapUp');
     const tapDown = document.getElementById('tapDown');
     const tapLeft = document.getElementById('tapLeft');
     const tapRight = document.getElementById('tapRight');
     
-    // Log the existence of these elements to verify
-    console.log("Tap zones found:", {
-        up: !!tapUp, 
-        down: !!tapDown, 
-        left: !!tapLeft, 
-        right: !!tapRight
-    });
-    
-    // Function to handle direction change
-    function handleTapDirection(direction, event) {
-        // Always prevent default behavior
-        if (event) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-        
-        console.log(`Tap on ${direction} detected`);
-        
-        // Provide haptic feedback
-        if ('vibrate' in navigator) {
-            navigator.vibrate(30);
-        }
-        
-        // Only change direction if game is running and not paused
-        if (gameRunning && !gamePaused) {
-            // Directly call handleDirection without queuing
-            handleDirection(direction);
-        }
+    // Exit early if elements don't exist
+    if (!tapUp || !tapDown || !tapLeft || !tapRight) {
+        console.error("Tap zones not found!");
+        return;
     }
     
-    // Add the most basic event listeners possible with maximum compatibility
-    if (tapUp) {
-        // Remove any existing listeners
-        tapUp.removeEventListener('touchend', function(){});
-        
-        // Add the simplest form of listeners
-        tapUp.ontouchstart = function(e) { 
-            e.preventDefault(); 
-            tapUp.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; 
-        };
-        
-        tapUp.ontouchend = function(e) { 
-            e.preventDefault();
-            handleTapDirection('up', e);
-            setTimeout(() => {
-                tapUp.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-            }, 150);
+    console.log("All tap zones found, attaching handlers");
+    
+    // Create direct tap function for each direction
+    function createDirectionHandler(direction) {
+        return function(e) {
+            console.log(`Tapped ${direction}`);
+            if (e) e.preventDefault();
+            if (gameRunning && !gamePaused) {
+                handleDirection(direction);
+            }
         };
     }
+
+    // Direct assignment of click/touch events
+    tapUp.onclick = createDirectionHandler('up');
+    tapDown.onclick = createDirectionHandler('down');
+    tapLeft.onclick = createDirectionHandler('left');
+    tapRight.onclick = createDirectionHandler('right');
     
-    if (tapDown) {
-        tapDown.removeEventListener('touchend', function(){});
-        
-        tapDown.ontouchstart = function(e) { 
-            e.preventDefault(); 
-            tapDown.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; 
-        };
-        
-        tapDown.ontouchend = function(e) { 
-            e.preventDefault();
-            handleTapDirection('down', e);
-            setTimeout(() => {
-                tapDown.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-            }, 150);
-        };
-    }
-    
-    if (tapLeft) {
-        tapLeft.removeEventListener('touchend', function(){});
-        
-        tapLeft.ontouchstart = function(e) { 
-            e.preventDefault(); 
-            tapLeft.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; 
-        };
-        
-        tapLeft.ontouchend = function(e) { 
-            e.preventDefault();
-            handleTapDirection('left', e);
-            setTimeout(() => {
-                tapLeft.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-            }, 150);
-        };
-    }
-    
-    if (tapRight) {
-        tapRight.removeEventListener('touchend', function(){});
-        
-        tapRight.ontouchstart = function(e) { 
-            e.preventDefault(); 
-            tapRight.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'; 
-        };
-        
-        tapRight.ontouchend = function(e) { 
-            e.preventDefault();
-            handleTapDirection('right', e);
-            setTimeout(() => {
-                tapRight.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-            }, 150);
-        };
-    }
-    
-    console.log("Tap zone controls initialization completed");
+    // Ensure they have styles that make them viable for touch
+    tapUp.style.cursor = 'pointer';
+    tapDown.style.cursor = 'pointer';
+    tapLeft.style.cursor = 'pointer';
+    tapRight.style.cursor = 'pointer';
+
+    console.log("Tap controls attached");
 }
 
 // Add visual effects to the game
@@ -1331,6 +1211,69 @@ function resizeGameCanvas() {
         drawSnake();
         drawFood();
     }
+
+    // Add this block to position tap zones directly on the canvas
+    setTimeout(function() {
+        const tapControls = document.getElementById('tapControls');
+        if (tapControls && canvas) {
+            const canvasRect = canvas.getBoundingClientRect();
+            
+            // Position tap controls directly over the canvas
+            tapControls.style.position = 'absolute';
+            tapControls.style.top = '0';
+            tapControls.style.left = '0';
+            tapControls.style.width = '100%';
+            tapControls.style.height = '100%';
+            
+            // Apply styles directly to tap zones
+            const zones = {
+                up: document.getElementById('tapUp'),
+                down: document.getElementById('tapDown'),
+                left: document.getElementById('tapLeft'),
+                right: document.getElementById('tapRight')
+            };
+            
+            Object.entries(zones).forEach(([dir, zone]) => {
+                if (zone) {
+                    zone.style.position = 'absolute';
+                    zone.style.display = 'flex';
+                    zone.style.alignItems = 'center';
+                    zone.style.justifyContent = 'center';
+                    zone.style.pointerEvents = 'auto';
+                    zone.style.fontSize = '24px';
+                    
+                    switch(dir) {
+                        case 'up':
+                            zone.style.top = '0';
+                            zone.style.left = '25%';
+                            zone.style.width = '50%';
+                            zone.style.height = '33%';
+                            break;
+                        case 'down':
+                            zone.style.bottom = '0';
+                            zone.style.left = '25%';
+                            zone.style.width = '50%';
+                            zone.style.height = '33%';
+                            break;
+                        case 'left':
+                            zone.style.top = '33%';
+                            zone.style.left = '0';
+                            zone.style.width = '25%';
+                            zone.style.height = '34%';
+                            break;
+                        case 'right':
+                            zone.style.top = '33%';
+                            zone.style.right = '0';
+                            zone.style.width = '25%';
+                            zone.style.height = '34%';
+                            break;
+                    }
+                }
+            });
+            
+            console.log("Tap zones positioned after canvas resize");
+        }
+    }, 50);
 }
 
 // Helper function to clear the canvas
@@ -1858,4 +1801,69 @@ function processDirectionQueue() {
             console.log(`Direction changed to: dx=${dx}, dy=${dy}`);
         }
     }
+}
+
+// Replace the setupTapZoneControls function with this simplified version
+function setupTapZoneControls() {
+    console.log("Setting up simplified tap controls");
+    
+    // Get tap zones
+    const tapUp = document.getElementById('tapUp');
+    const tapDown = document.getElementById('tapDown');
+    const tapLeft = document.getElementById('tapLeft');
+    const tapRight = document.getElementById('tapRight');
+    
+    // Log what we found
+    console.log("Looking for tap zones:", {
+        up: !!tapUp,
+        down: !!tapDown,
+        left: !!tapLeft,
+        right: !!tapRight
+    });
+    
+    // Exit if not found
+    if (!tapUp || !tapDown || !tapLeft || !tapRight) {
+        console.error("Some tap zones are missing!");
+        return;
+    }
+    
+    // Create simple event handler
+    function createHandler(direction) {
+        return function(e) {
+            if (e) e.preventDefault();
+            console.log("Tap direction:", direction);
+            if (gameRunning && !gamePaused) {
+                handleDirection(direction);
+            }
+        };
+    }
+    
+    // Attach handlers directly (simpler is better)
+    tapUp.onclick = createHandler('up');
+    tapDown.onclick = createHandler('down');
+    tapLeft.onclick = createHandler('left');
+    tapRight.onclick = createHandler('right');
+    
+    // Also attach touch events for mobile
+    tapUp.ontouchend = createHandler('up');
+    tapDown.ontouchend = createHandler('down');
+    tapLeft.ontouchend = createHandler('left');
+    tapRight.ontouchend = createHandler('right');
+    
+    // Style them for visibility
+    [tapUp, tapDown, tapLeft, tapRight].forEach(zone => {
+        if (zone) {
+            // Fix the tap zone appearance
+            zone.style.display = "flex";
+            zone.style.alignItems = "center";
+            zone.style.justifyContent = "center";
+            zone.style.fontSize = "24px";
+            zone.style.color = "rgba(255, 255, 255, 0.5)";
+            zone.style.backgroundColor = "rgba(255, 255, 255, 0.05)";
+            zone.style.border = "1px solid rgba(255, 255, 255, 0.2)";
+            zone.style.cursor = "pointer";
+        }
+    });
+    
+    console.log("Tap zone controls set up successfully");
 }

@@ -22,15 +22,14 @@
             <div id="gamePaused" class="game-status game-paused">PAUSED</div>
             <div id="gameOver" class="game-status game-over">GAME OVER</div>
             
-            <!-- Ensure tap zones are directly inside the game area -->
-            <div class="tap-controls">
-                <div id="tapUp" class="tap-zone tap-up"></div>
-                <div id="tapDown" class="tap-zone tap-down"></div>
-                <div id="tapLeft" class="tap-zone tap-left"></div>
-                <div id="tapRight" class="tap-zone tap-right"></div>
+            <!-- Fixed tap controls with correct structure -->
+            <div class="tap-controls" id="tapControls" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none;">
+                <div id="tapUp" class="tap-zone tap-up" style="position: absolute; top: 0; left: 25%; width: 50%; height: 33%; pointer-events: auto;">▲</div>
+                <div id="tapDown" class="tap-zone tap-down" style="position: absolute; bottom: 0; left: 25%; width: 50%; height: 33%; pointer-events: auto;">▼</div>
+                <div id="tapLeft" class="tap-zone tap-left" style="position: absolute; top: 33%; left: 0; width: 25%; height: 34%; pointer-events: auto;">◀</div>
+                <div id="tapRight" class="tap-zone tap-right" style="position: absolute; top: 33%; right: 0; width: 25%; height: 34%; pointer-events: auto;">▶</div>
             </div>
             
-            <!-- Add swipe indicator -->
             <div id="swipeIndicator" class="swipe-indicator">
                 Swipe to change direction
             </div>
@@ -40,10 +39,7 @@
             <div class="controls">
                 <button id="startBtn" class="main-btn"><i class="fas fa-play"></i> Start</button>
                 <button id="restartBtn" class="secondary-btn"><i class="fas fa-redo-alt"></i></button>
-                <!-- Remove mute button -->
             </div>
-            
-            <!-- Remove d-pad controls -->
         </div>
         
         <div class="game-info">
@@ -220,5 +216,88 @@
         // toggleTapZoneDebug()
     </script>
     <script src="game.js"></script>
+    <script>
+        // Emergency fix for mobile - this ensures tap zones work
+        function fixMobileTapZones() {
+            const tapUp = document.getElementById('tapUp');
+            const tapDown = document.getElementById('tapDown');
+            const tapLeft = document.getElementById('tapLeft');
+            const tapRight = document.getElementById('tapRight');
+            
+            if (!tapUp || !tapDown || !tapLeft || !tapRight) {
+                console.error("Tap zones not found!");
+                return;
+            }
+            
+            // Use direct onclick handlers which have better mobile support
+            tapUp.onclick = function() { if(window.handleDirection) window.handleDirection('up'); };
+            tapDown.onclick = function() { if(window.handleDirection) window.handleDirection('down'); };
+            tapLeft.onclick = function() { if(window.handleDirection) window.handleDirection('left'); };
+            tapRight.onclick = function() { if(window.handleDirection) window.handleDirection('right'); };
+            
+            console.log("Mobile tap zones fixed");
+        }
+        
+        // Run the fix after everything else has loaded
+        window.addEventListener('load', function() {
+            setTimeout(fixMobileTapZones, 500);
+        });
+    </script>
+    
+    <!-- Emergency tap zone positioning fix -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                console.log("Applying emergency tap zone positioning fix");
+                
+                const canvas = document.getElementById('gameCanvas');
+                const tapControls = document.getElementById('tapControls');
+                
+                if (canvas && tapControls) {
+                    // Position tap controls precisely over the canvas
+                    tapControls.style.position = 'absolute';
+                    tapControls.style.top = '0';
+                    tapControls.style.left = '0';
+                    tapControls.style.width = '100%';
+                    tapControls.style.height = '100%';
+                    tapControls.style.zIndex = '100';
+                    
+                    // Log position info
+                    console.log("Canvas position:", {
+                        width: canvas.width,
+                        height: canvas.height,
+                        rect: canvas.getBoundingClientRect()
+                    });
+                    
+                    // Make sure tap zones are visible and styled
+                    const tapZones = [
+                        document.getElementById('tapUp'),
+                        document.getElementById('tapDown'),
+                        document.getElementById('tapLeft'),
+                        document.getElementById('tapRight')
+                    ];
+                    
+                    tapZones.forEach(zone => {
+                        if (zone) {
+                            zone.style.border = '2px solid rgba(255,255,255,0.3)';
+                            zone.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                            zone.style.color = 'white';
+                            zone.style.fontSize = '24px';
+                            zone.style.display = 'flex';
+                            zone.style.alignItems = 'center';
+                            zone.style.justifyContent = 'center';
+                            zone.style.pointerEvents = 'auto';
+                        }
+                    });
+                    
+                    console.log("Tap zones positioned and styled");
+                }
+            }, 500);
+        });
+    </script>
+    
+    <!-- Additional scripts -->
+    <script src="debug.js"></script>
+    <script src="fix-taps.js"></script>
 </body>
 </html>

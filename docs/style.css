@@ -97,31 +97,25 @@ h1 {
 }
 
 .game-area {
-    position: relative;
-    width: 100%;
-    height: 75vh; /* Use viewport height for better screen utilization */
-    min-height: 300px; /* Minimum height to ensure playability */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    padding: 0;
-    overflow: hidden; /* Prevent scrollbars if canvas is slightly larger */
+    position: relative !important;
+    width: 100% !important;
+    height: 75vh !important; /* Use viewport height for better screen utilization */
+    min-height: 300px !important; /* Minimum height to ensure playability */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    overflow: hidden !important; /* Prevent scrollbars if canvas is slightly larger */
 }
 
 canvas {
-    display: block;
-    margin: 0 auto;
-    background: #000;
-    border: var(--border-thickness) solid var(--text);
-    width: auto; 
-    height: auto;
-    max-width: 100%;
-    max-height: 100%;
-    box-shadow: 6px 6px 0 0 var(--accent-1);
-    background-image: radial-gradient(circle, #1a1a1a 1px, transparent 1px);
-    background-size: 20px 20px;
-    object-fit: contain; /* Ensure canvas preserves its content within bounds */
+    display: block !important;
+    margin: 0 auto !important;
+    background: #000 !important;
+    border: var(--border-thickness) solid var(--text) !important;
+    object-fit: contain !important; /* Ensure canvas preserves its content within bounds */
+    position: relative !important; /* Establish positioning context */
 }
 
 .game-status {
@@ -266,56 +260,59 @@ canvas {
 
 /* Add tap areas for directional control */
 .tap-controls {
-    display: block; /* Ensure tap controls are visible */
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%; /* Match the size of the canvas */
-    height: 100%; /* Match the size of the canvas */
-    z-index: 10;
-    pointer-events: none; /* Allow clicks to pass through by default */
-    touch-action: none; /* Prevent browser handling of touch events */
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 100 !important;
+    pointer-events: none !important;
 }
 
 .tap-zone {
-    position: absolute;
-    pointer-events: auto; /* Make tap zones receive clicks */
-    background-color: rgba(255, 255, 255, 0.05);
-    transition: background-color 0.2s;
-    touch-action: none; /* Prevent browser handling of touch events */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: absolute !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    font-size: 24px !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
 }
 
 .tap-zone:active {
-    background-color: rgba(255, 255, 255, 0.25);
+    background-color: rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Adjust tap zones to fully cover the canvas area */
 .tap-up {
-    top: 0;
-    left: 25%;
-    width: 50%;
-    height: 30%; /* Top zone takes upper 30% */
+    top: 0 !important;
+    left: 25% !important;
+    width: 50% !important;
+    height: 33% !important;
 }
 
 .tap-down {
-    bottom: 0;
-    left: 25%;
-    width: 50%;
-    height: 30%; /* Bottom zone takes lower 30% */
+    bottom: 0 !important;
+    left: 25% !important;
+    width: 50% !important;
+    height: 33% !important;
 }
 
 .tap-left {
-    top: 30%;
-    left: 0;
-    width: 25%;
-    height: 40%;
+    top: 33% !important;
+    left: 0 !important;
+    width: 25% !important;
+    height: 34% !important;
 }
 
 .tap-right {
-    top: 30%;
-    right: 0;
-    width: 25%; 
-    height: 40%;
+    top: 33% !important;
+    right: 0 !important;
+    width: 25% !important;
+    height: 34% !important;
 }
 
 /* New D-pad design - Perspective 3D buttons */
@@ -1644,15 +1641,15 @@ body.modal-open {
 }
 
 .tap-left {
-    top: 33%;
     left: 0;
+    top: 33%;
     width: 25%;
     height: 34%;
 }
 
 .tap-right {
-    top: 33%;
     right: 0;
+    top: 33%;
     width: 25%;
     height: 34%;
 }
@@ -1705,4 +1702,165 @@ body.modal-open {
     .tap-zone:active {
         background-color: rgba(255, 255, 255, 0.25);
     }
+}
+
+/* Fix tap zones - override any problematic styles */
+.tap-controls {
+    display: block !important; 
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 100 !important;
+}
+
+.tap-zone {
+    position: absolute !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    pointer-events: auto !important;
+    -webkit-tap-highlight-color: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-sizing: border-box !important;
+    display: block !important;
+    user-select: none !important;
+}
+
+/* Highlight tap zones for visibility during debugging */
+.tap-controls.debug .tap-zone {
+    border: 2px solid white !important;
+    background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Simplify positions with exact values */
+#tapUp {
+    top: 0 !important;
+    left: 25% !important; 
+    width: 50% !important;
+    height: 33% !important;
+}
+
+#tapDown {
+    bottom: 0 !important;
+    left: 25% !important;
+    width: 50% !important;
+    height: 33% !important;
+}
+
+#tapLeft {
+    left: 0 !important;
+    top: 33% !important;
+    width: 25% !important;
+    height: 34% !important;
+}
+
+#tapRight {
+    right: 0 !important;
+    top: 33% !important;
+    width: 25% !important;
+    height: 34% !important;
+}
+
+/* Add distinctive tap indicators */
+.tap-zone::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.4;
+}
+
+#tapUp::after {
+    content: '▲';
+    font-size: 30px;
+}
+
+#tapDown::after {
+    content: '▼';
+    font-size: 30px;
+}
+
+#tapLeft::after {
+    content: '◀';
+    font-size: 30px;
+}
+
+#tapRight::after {
+    content: '▶';
+    font-size: 30px;
+}
+
+/* Fix the tap zones positioning issues */
+.tap-controls {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 50 !important;
+    pointer-events: none !important;
+    display: block !important;
+    touch-action: none !important;
+}
+
+.tap-zone {
+    position: absolute !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 24px !important;
+    color: rgba(255, 255, 255, 0.35) !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 100 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    touch-action: none !important;
+}
+
+/* Simplified tap zone positioning */
+.tap-up {
+    top: 0 !important;
+    left: 25% !important;
+    width: 50% !important;
+    height: 33% !important;
+}
+
+.tap-down {
+    bottom: 0 !important;
+    left: 25% !important;
+    width: 50% !important;
+    height: 33% !important;
+}
+
+.tap-left {
+    left: 0 !important;
+    top: 33% !important;
+    width: 25% !important;
+    height: 34% !important;
+}
+
+.tap-right {
+    right: 0 !important;
+    top: 33% !important;
+    width: 25% !important;
+    height: 34% !important;
+}
+
+/* Highlight active state */
+.tap-zone:active {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Make tap zones more visible in debug mode */
+.tap-controls.debug .tap-zone {
+    background-color: rgba(255, 0, 0, 0.2) !important;
+    border: 2px solid white !important;
+    color: white !important;
 }
