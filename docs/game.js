@@ -1282,6 +1282,40 @@ function resizeGameCanvas() {
         
         console.log("Tap controls refreshed after canvas resize");
     }, 100);
+
+    // Add a direct call to the emergency tap fix if available
+    if (window.emergencyTapFix && typeof window.emergencyTapFix === 'function') {
+        console.log("Calling emergency tap fix after canvas resize");
+        setTimeout(window.emergencyTapFix, 50);
+    } else {
+        console.log("Emergency tap fix not available, falling back to basic positioning");
+        
+        // Basic fallback positioning
+        const tapControls = document.querySelector('.tap-controls');
+        if (tapControls && canvas) {
+            const canvasRect = canvas.getBoundingClientRect();
+            const gameArea = document.querySelector('.game-area');
+            const gameAreaRect = gameArea.getBoundingClientRect();
+            
+            // Calculate position
+            const topOffset = canvasRect.top - gameAreaRect.top;
+            const leftOffset = canvasRect.left - gameAreaRect.left;
+            
+            // Position tap controls exactly over canvas
+            tapControls.style.position = 'absolute';
+            tapControls.style.top = topOffset + 'px';
+            tapControls.style.left = leftOffset + 'px';
+            tapControls.style.width = canvasRect.width + 'px';
+            tapControls.style.height = canvasRect.height + 'px';
+            
+            console.log("Positioned tap controls using fallback method:", {
+                top: topOffset + "px",
+                left: leftOffset + "px", 
+                width: canvasRect.width + "px",
+                height: canvasRect.height + "px"
+            });
+        }
+    }
 }
 
 // Helper function to clear the canvas
