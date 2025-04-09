@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <!-- Add the instructions remover early in the load sequence -->
+    <!-- Run the instruction remover first -->
     <script src="mobile-instructions-remover.js"></script>
     <!-- Order matters: viewport fix should run next -->
     <script src="viewport-fix.js"></script>
@@ -18,10 +18,9 @@
     <script src="mobile-size-fix.js" defer></script>
     <script src="force-mobile-size.js" defer></script>
     <script src="mobile-ui-optimizer.js" defer></script>
-    <!-- Load the game and controls -->
+    <!-- Load the game -->
     <script src="js/snake-neo-design.js" defer></script>
-    <!-- Tap zone fixes - load in this order -->
-    <script src="tap-zones-fix.js" defer></script>
+    <!-- Only keep one tap controller implementation -->
     <script src="direct-tap-controller.js" defer></script>
 </head>
 <body>
@@ -35,17 +34,7 @@
             <div id="gamePaused" class="game-status game-paused">PAUSED</div>
             <div id="gameOver" class="game-status game-over">GAME OVER</div>
             
-            <!-- Enhanced tap controls with direct inline handlers -->
-            <div class="tap-controls" id="tapControls" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none;">
-                <div id="tapUp" class="tap-zone tap-up" style="position: absolute; top: 0; left: 25%; width: 50%; height: 33%; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 24px;" 
-                     onclick="if(window.handleDirection) window.handleDirection('up');">▲</div>
-                <div id="tapDown" class="tap-zone tap-down" style="position: absolute; bottom: 0; left: 25%; width: 50%; height: 33%; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 24px;" 
-                     onclick="if(window.handleDirection) window.handleDirection('down');">▼</div>
-                <div id="tapLeft" class="tap-zone tap-left" style="position: absolute; top: 33%; left: 0; width: 25%; height: 34%; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 24px;" 
-                     onclick="if(window.handleDirection) window.handleDirection('left');">◀</div>
-                <div id="tapRight" class="tap-zone tap-right" style="position: absolute; top: 33%; right: 0; width: 25%; height: 34%; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 24px;" 
-                     onclick="if(window.handleDirection) window.handleDirection('right');">▶</div>
-            </div>
+
             
             <div id="swipeIndicator" class="swipe-indicator">
                 Swipe to change direction
@@ -102,7 +91,6 @@
     
     <!-- Mobile-specific Scripts -->
     <script src="unified-mobile-controls.js"></script>
-    <script src="tap-onboarding.js"></script>
     <script src="ios-touch-helper.js"></script>
 </body>
 </html>

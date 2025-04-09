@@ -736,40 +736,53 @@ function gameLoop(timestamp) {
     lastFrameTime = timestamp;
 }
 
-// Replace moveSnake function with this fixed version
+// Fix moveSnake function to ensure proper boundary handling on all devices
 function moveSnake() {
-    // Ensure snake exists and has correct format
-    if (!snake || !Array.isArray(snake) || snake.length < 1) {
-        console.error("Invalid snake in moveSnake, resetting...");
+    // Validate snake
+    if (!snake || !Array.isArray(snake) || snake.length === 0) {
+        console.error("Invalid snake in moveSnake");
         snake = forceResetSnake();
         return;
     }
     
-    // Get the head position and calculate new head
+    // Get current head position
     const head = snake[0];
-    const newHead = { 
-        x: head.x + dx, 
-        y: head.y + dy 
-    };
     
-    // Handle edge wrapping
+    // Calculate new head position 
+    const newHeadX = head.x + dx;
+    const newHeadY = head.y + dy;
+    
+    // Handle edge wrapping with safer grid cell calculations
+    // Use actual canvas dimensions rather than hardcoded values
     const gridCellsX = Math.floor(canvas.width / gridSize);
     const gridCellsY = Math.floor(canvas.height / gridSize);
     
-    if (newHead.x < 0) newHead.x = (gridCellsX - 1) * gridSize;
-    else if (newHead.x >= gridCellsX * gridSize) newHead.x = 0;
+    let wrappedX = newHeadX;
+    let wrappedY = newHeadY;
     
-    if (newHead.y < 0) newHead.y = (gridCellsY - 1) * gridSize;
-    else if (newHead.y >= gridCellsY * gridSize) newHead.y = 0;
+    // Ensure proper wrapping even on mobile with different screen sizes
+    if (wrappedX < 0) {
+        wrappedX = (gridCellsX - 1) * gridSize;
+    } else if (wrappedX >= gridCellsX * gridSize) {
+        wrappedX = 0;
+    }
     
-    // Ensure new head is aligned to the grid
-    newHead.x = Math.floor(newHead.x / gridSize) * gridSize;
-    newHead.y = Math.floor(newHead.y / gridSize) * gridSize;
+    if (wrappedY < 0) {
+        wrappedY = (gridCellsY - 1) * gridSize;
+    } else if (wrappedY >= gridCellsY * gridSize) {
+        wrappedY = 0;
+    }
+    
+    // Ensure positions are always exactly on the grid
+    const newHead = {
+        x: Math.floor(wrappedX / gridSize) * gridSize,
+        y: Math.floor(wrappedY / gridSize) * gridSize
+    };
     
     // Add the new head to the snake
     snake.unshift(newHead);
     
-    // Food collection logic - Debug this part carefully
+    // Rest of food collision logic
     let foodEaten = false;
     
     // Check if the new head position matches the food position EXACTLY
@@ -840,13 +853,7 @@ window.onload = function() {
         // Detect if user is on mobile
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         
-        // Force mark ALL instruction-related flags as seen
-        localStorage.setItem('mobileInstructionsShown', 'true');
-        localStorage.setItem('tapOnboardingShown', 'true');
-        localStorage.setItem('onboardingShown', 'true');
-        localStorage.setItem('controlsOnboardingShown', 'true');
-        localStorage.setItem('tutorialComplete', 'true');
-        localStorage.setItem('hasSeenInstructions', 'true');
+        // No need to set localStorage flags here as mobile-instructions-remover.js handles it
         
         // First call resize to initialize canvas and grid size
         resizeGameCanvas();
@@ -869,10 +876,7 @@ window.onload = function() {
         const pauseElement = document.getElementById('gamePaused');
         if (pauseElement) pauseElement.style.display = 'none';
         
-        // Hide all instruction elements if they exist
-        document.querySelectorAll('.game-info, #mobileInstructions, .instructions, .tutorial, .onboarding-overlay, .hint').forEach(el => {
-            if (el) el.style.display = 'none';
-        });
+        // No need for instruction hiding code here - handled by mobile-instructions-remover.js
         
         // Set up keyboard controls - make sure we're adding proper event listeners
         document.addEventListener('keydown', changeDirection);
@@ -1380,6 +1384,16 @@ function resizeGameCanvas() {
                 height: canvasRect.height + "px"
             });
         }
+    }
+
+    // After canvas is resized, update the tap controller position
+    if (typeof window.updateTapPosition === 'function') {
+        setTimeout(window.updateTapPosition, 50);
+    }
+
+    // If direct tap controller exists, reinitialize it
+    if (typeof window.reinitDirectTapController === 'function') {
+        setTimeout(window.reinitDirectTapController, 100);
     }
 }
 
@@ -2104,4 +2118,12 @@ function setupTapZoneControls() {
     });
     
     console.log("Tap zone controls set up successfully");
+}
+
+// Replace the setupTapZoneControls function with a version that does nothing
+// since we're using direct-tap-controller.js instead
+function setupTapZoneControls() {
+    console.log("Tap controls handled by direct-tap-controller.js, skipping internal setup");
+    // Do nothing - direct-tap-controller.js handles this now
+    return true;
 }

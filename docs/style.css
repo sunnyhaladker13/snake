@@ -232,9 +232,26 @@ canvas {
     box-shadow: 2px 2px 0 0 black;
 }
 
-/* Remove the D-pad control and replace with gesture-based controls */
-.touch-controls {
-    display: none; /* This will now be handled entirely by canvas touch events */
+/* Remove old tap controls styling as we're using direct-tap-controller only */
+.tap-controls {
+    display: none; /* Hide old tap controls - we use direct-tap-controller now */
+}
+
+/* Add styles for direct-tap-controller zones */
+.direct-tap-zone {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    background-color: transparent;
+    border: none;
+    color: rgba(255,255,255,0.15);
+    transition: background-color 0.1s;
+}
+
+.direct-tap-zone:active {
+    background-color: rgba(255,255,255,0.05);
 }
 
 /* Add swipe indicator style */
@@ -256,11 +273,6 @@ canvas {
 
 .swipe-indicator.visible {
     opacity: 1;
-}
-
-/* Add tap areas for directional control */
-.tap-controls {
-    display: none; /* Ensure only one set of controls is visible */
 }
 
 /* Debugging styles for tap zones (optional) */
@@ -580,7 +592,7 @@ canvas {
 /* Update keyboard tip styling to accommodate WASD keys */
 .keyboard-tip {
     font-size: 0.8rem;
-    color: var(--text);
+    color: var (--text);
     margin: 0.2rem 0;
     display: flex;
     flex-wrap: wrap;

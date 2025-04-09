@@ -1,7 +1,6 @@
 /**
  * Mobile UI Optimizer
  * Optimizes the game UI specifically for mobile devices
- * - Hides instructions
  * - Increases touch target sizes
  * - Maximizes canvas space
  */
@@ -17,39 +16,8 @@
     console.log("MOBILE UI: Optimizing UI for mobile");
     
     function optimizeMobileUI() {
-        // ENHANCED: Aggressively hide all instructions and popups
-        document.querySelectorAll('.game-info, .instructions, #mobileInstructions, .onboarding-overlay, #tapOnboardingOverlay').forEach(el => {
-            if (el) {
-                el.style.display = 'none';
-                // Force remove from DOM if possible
-                if (el.parentNode) {
-                    try {
-                        el.parentNode.removeChild(el);
-                        console.log("MOBILE UI: Removed instruction element", el.id || el.className);
-                    } catch(e) {}
-                }
-            }
-        });
+        // Removed instruction hiding code as it's now handled by mobile-instructions-remover.js
         
-        // Also immediately hide any mobile instructions panel if it exists
-        const mobileInstructions = document.getElementById('mobileInstructions');
-        if (mobileInstructions) {
-            mobileInstructions.style.display = 'none';
-            
-            // Close button should also be hidden
-            const closeBtn = document.getElementById('closeInstructions');
-            if (closeBtn) closeBtn.style.display = 'none';
-            
-            // Mark as seen in localStorage
-            localStorage.setItem('mobileInstructionsShown', 'true');
-        }
-        
-        // Force mark all tutorials as seen
-        localStorage.setItem('mobileInstructionsShown', 'true');
-        localStorage.setItem('tapOnboardingShown', 'true');
-        localStorage.setItem('onboardingShown', 'true');
-        localStorage.setItem('controlsOnboardingShown', 'true');
-
         // Set game container to full width
         const gameContainer = document.querySelector('.game-container');
         if (gameContainer) {
@@ -106,7 +74,7 @@
         // Update meta viewport settings for optimal mobile view
         updateViewport();
         
-        console.log("MOBILE UI: Optimization complete - all instructions removed");
+        console.log("MOBILE UI: Mobile optimization complete");
         return true;
     }
     
@@ -138,39 +106,9 @@
         setTimeout(optimizeMobileUI, 500);
     });
     
-    // ENHANCED: Run multiple times to ensure popups are removed
-    window.addEventListener('load', () => {
-        // Run multiple times to catch any delayed popups
-        for (let i = 0; i < 5; i++) {
-            setTimeout(optimizeMobileUI, 500 * i);
-        }
-    });
-    
     // Make function available globally
     window.optimizeMobileUI = optimizeMobileUI;
     
     // Run immediately for faster effect
     setTimeout(optimizeMobileUI, 10);
-    
-    // ENHANCED: Monitor for new elements and remove them
-    // This helps catch any dynamically added instruction popups
-    function monitorAndRemoveInstructions() {
-        const selectors = [
-            '#mobileInstructions', 
-            '.onboarding-overlay',
-            '#tapOnboardingOverlay',
-            '#onboardingOverlay'
-        ];
-        
-        selectors.forEach(selector => {
-            const element = document.querySelector(selector);
-            if (element) {
-                element.style.display = 'none';
-                console.log(`MOBILE UI: Detected and hiding ${selector}`);
-            }
-        });
-    }
-    
-    // Run monitor periodically
-    setInterval(monitorAndRemoveInstructions, 1000);
 })();

@@ -43,7 +43,7 @@
             pointer-events: none !important;
             touch-action: none !important;
             transform: translate3d(0,0,0) !important; /* Force GPU acceleration */
-            border: 2px solid red; /* Debug border - will be hidden later */
+            border: none; /* Remove debug border */
         `;
         
         // Attach to body to ensure no other element's positioning affects it
@@ -61,19 +61,19 @@
             const el = document.createElement('div');
             el.className = `fixed-tap-zone fixed-${zone.dir}`;
             
-            // Unified styling with important flags to avoid overrides
+            // Unified styling with important flags to avoid overrides - now with more subtle borders
             el.style.cssText = `
                 position: absolute !important;
                 ${zone.pos} !important;
-                background-color: rgba(255,100,100,0.5) !important;
-                color: white !important;
+                background-color: rgba(255,255,255,0.1) !important;
+                color: rgba(255,255,255,0.3) !important;
                 pointer-events: auto !important;
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
                 font-size: 28px !important;
                 touch-action: none !important;
-                border: 2px solid white !important;
+                border: 1px solid rgba(255,255,255,0.1) !important;
                 user-select: none !important;
                 z-index: 100000 !important;
                 -webkit-tap-highlight-color: transparent !important;
@@ -94,26 +94,21 @@
             // Touch events with visual feedback
             el.addEventListener('touchstart', function(e) {
                 e.preventDefault(); e.stopPropagation();
-                this.style.backgroundColor = 'rgba(255,255,255,0.6)';
+                this.style.backgroundColor = 'rgba(255,255,255,0.2)';
+                this.style.borderColor = 'rgba(255,255,255,0.2)';
             }, {passive: false, capture: true});
             
             el.addEventListener('touchend', function(e) {
                 e.preventDefault(); e.stopPropagation();
-                this.style.backgroundColor = 'rgba(255,100,100,0.5)';
+                this.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                this.style.borderColor = 'rgba(255,255,255,0.1)';
                 window.handleDirection(zone.dir);
             }, {passive: false, capture: true});
             
             console.log(`TAP FORCE FIX: Created ${zone.dir} zone`);
         });
         
-        // Hide debug visuals after a moment
-        setTimeout(function() {
-            container.style.border = 'none';
-            document.querySelectorAll('.fixed-tap-zone').forEach(zone => {
-                zone.style.backgroundColor = 'rgba(255,255,255,0.2)';
-                zone.style.border = '1px solid rgba(255,255,255,0.3)';
-            });
-        }, 3000);
+        // No need to hide debug visuals since we're not showing them anymore
         
         // Add repositioning function when viewport changes
         function updatePosition() {

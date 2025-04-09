@@ -76,9 +76,9 @@
                 justify-content: center !important;
                 pointer-events: auto !important;
                 background-color: rgba(37, 37, 37, 0.1) !important;
-                color: rgba(255, 255, 255, 0.4) !important;
+                color: rgba(255, 255, 255, 0.3) !important;
                 font-size: 20px !important;
-                border: 1px solid rgba(255, 255, 255, 0.15) !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
                 touch-action: none !important;
                 -webkit-tap-highlight-color: transparent !important;
                 transition: all 0.15s ease-out !important;
@@ -120,16 +120,16 @@
             setTimeout(updateOverlayPosition, 1000);
         });
         
-        // Briefly show controls when first created for better user awareness
+        // Briefly show controls when first created for better user awareness - with more subtle styling
         document.querySelectorAll('.mobile-touch-zone').forEach(el => {
-            el.style.backgroundColor = 'rgba(255, 95, 31, 0.2)';
-            el.style.border = '2px solid rgba(255, 95, 31, 0.3)';
-            el.style.color = 'rgba(255, 255, 255, 0.7)';
+            el.style.backgroundColor = 'rgba(255, 95, 31, 0.15)';
+            el.style.border = '1px solid rgba(255, 95, 31, 0.2)';
+            el.style.color = 'rgba(255, 255, 255, 0.4)';
             
             setTimeout(() => {
                 el.style.backgroundColor = 'rgba(37, 37, 37, 0.1)';
-                el.style.border = '1px solid rgba(255, 255, 255, 0.15)';
-                el.style.color = 'rgba(255, 255, 255, 0.4)';
+                el.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+                el.style.color = 'rgba(255, 255, 255, 0.3)';
             }, 1500);
         });
         
@@ -144,9 +144,9 @@
             e.preventDefault();
             e.stopPropagation();
             
-            // Neo-brutalist active state
-            this.style.backgroundColor = 'rgba(255, 95, 31, 0.25)';
-            this.style.border = '2px solid rgba(255, 95, 31, 0.4)';
+            // Neo-brutalist active state - more subtle
+            this.style.backgroundColor = 'rgba(255, 95, 31, 0.2)';
+            this.style.border = '1px solid rgba(255, 95, 31, 0.3)';
             this.style.transform = 'scale(0.97)';
             this.querySelector('div').style.transform = 'scale(1.1)';
         }, {passive: false});
@@ -157,7 +157,7 @@
             
             // Reset to subtle state
             this.style.backgroundColor = 'rgba(37, 37, 37, 0.1)';
-            this.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+            this.style.border = '1px solid rgba(255, 255, 255, 0.1)';
             this.style.transform = 'scale(1)';
             this.querySelector('div').style.transform = 'scale(1)';
             
@@ -241,17 +241,17 @@
     // Expose recreation function to window
     window.recreateMobileTouchControls = createMobileTouchControls;
     
-    // Visual debugging helper
+    // Visual debugging helper - with more subtle styling
     window.toggleMobileControls = function(visible) {
         document.querySelectorAll('.mobile-touch-zone').forEach(el => {
             if (visible) {
-                el.style.backgroundColor = 'rgba(255, 95, 31, 0.2)';
-                el.style.border = '2px solid rgba(255, 95, 31, 0.4)';
-                el.style.color = 'rgba(255, 255, 255, 0.7)';
+                el.style.backgroundColor = 'rgba(255, 95, 31, 0.15)';
+                el.style.border = '1px solid rgba(255, 95, 31, 0.2)';
+                el.style.color = 'rgba(255, 255, 255, 0.5)';
             } else {
                 el.style.backgroundColor = 'rgba(37, 37, 37, 0.1)';
-                el.style.border = '1px solid rgba(255, 255, 255, 0.15)';
-                el.style.color = 'rgba(255, 255, 255, 0.4)';
+                el.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+                el.style.color = 'rgba(255, 255, 255, 0.3)';
             }
         });
         return `Mobile controls ${visible ? 'highlighted' : 'subtle'}`;
