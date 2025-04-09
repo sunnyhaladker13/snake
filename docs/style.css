@@ -260,7 +260,6 @@ canvas {
 
 /* Add tap areas for directional control */
 .tap-controls {
-    display: block !important;
     position: absolute !important;
     top: 0 !important;
     left: 0 !important;
@@ -271,48 +270,57 @@ canvas {
 }
 
 .tap-zone {
+    position: absolute !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    position: absolute !important;
     background-color: rgba(255, 255, 255, 0.1) !important;
     color: rgba(255, 255, 255, 0.5) !important;
     font-size: 24px !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
     pointer-events: auto !important;
     cursor: pointer !important;
-}
-
-.tap-zone:active {
-    background-color: rgba(255, 255, 255, 0.3) !important;
+    touch-action: none !important;
 }
 
 .tap-up {
-    top: 0 !important;
+    top: 5% !important; /* Adjusted to ensure visibility */
     left: 25% !important;
     width: 50% !important;
-    height: 33% !important;
+    height: 25% !important;
 }
 
 .tap-down {
-    bottom: 0 !important;
+    bottom: 5% !important; /* Adjusted to ensure visibility */
     left: 25% !important;
     width: 50% !important;
-    height: 33% !important;
+    height: 25% !important;
 }
 
 .tap-left {
     top: 33% !important;
-    left: 0 !important;
-    width: 25% !important;
+    left: 5% !important; /* Adjusted to ensure visibility */
+    width: 20% !important;
     height: 34% !important;
 }
 
 .tap-right {
     top: 33% !important;
-    right: 0 !important;
-    width: 25% !important;
+    right: 5% !important; /* Adjusted to ensure visibility */
+    width: 20% !important;
     height: 34% !important;
+}
+
+/* Highlight active state */
+.tap-zone:active {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Debug mode for tap zones */
+.tap-controls.debug .tap-zone {
+    background-color: rgba(255, 0, 0, 0.2) !important;
+    border: 2px solid white !important;
+    color: white !important;
 }
 
 /* New D-pad design - Perspective 3D buttons */
