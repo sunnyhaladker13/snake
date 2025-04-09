@@ -827,19 +827,17 @@ window.onload = function() {
     console.log(`Canvas size: ${canvas.width}x${canvas.height}, GridSize: ${gridSize}, TileCount: ${tileCount}`);
     console.log(`Initial snake position: x=${snake[0].x}, y=${snake[0].y}`);
     console.log(`Initial food position: x=${food.x}, y=${food.y}`);
+    
+    // Set up touch controls
     setupTouchControls();
     
-    // Test device type and show touch controls on mobile
+    // Test device type and set up mobile controls
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const touchControls = document.querySelector('.touch-controls');
     
     if (isMobile) {
-        touchControls.style.display = 'flex';
-        
-        // Remove these lines as they're causing problems
-        // document.body.style.paddingBottom = '120px';
-        // const gameContainer = document.querySelector('.game-container');
-        // gameContainer.style.marginBottom = '20px';
+        // Enable tap controls for mobile
+        const tapControls = document.querySelector('.tap-controls');
+        if (tapControls) tapControls.style.display = 'block';
     }
 
     // Set viewport height to ensure no scrolling
@@ -849,16 +847,8 @@ window.onload = function() {
     // For extremely small screens, hide guides completely
     const viewportHeight = window.innerHeight;
     if (viewportHeight < 650) {
-        document.querySelector('.guide-toggle').style.display = 'none';
-    }
-
-    // Test device type and set up mobile controls
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
-    if (isMobile) {
-        // Enable tap controls for mobile
-        const tapControls = document.querySelector('.tap-controls');
-        tapControls.style.display = 'block';
+        const guideToggle = document.querySelector('.guide-toggle');
+        if (guideToggle) guideToggle.style.display = 'none';
     }
 };
 
@@ -885,136 +875,6 @@ function updatePauseDisplay() {
 
 // Improved mobile touch controls
 function setupTouchControls() {
-    // Swipe controls for canvas
-    const touchArea = document.getElementById('gameCanvas');
-    let startX, startY;
-    const MIN_SWIPE = 30; // Minimum swipe distance
-
-    touchArea.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        const touch = e.touches[0];
-        startX = touch.clientX;
-        startY = touch.clientY;
-    });
-
-    touchArea.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-    });
-
-    touchArea.addEventListener('touchend', (e) => {
-        if (!startX || !startY) return;
-        
-        const touch = e.changedTouches[0];
-        const dx = touch.clientX - startX;
-        const dy = touch.clientY - startY;
-        
-        // Only register as swipe if movement is significant
-        if (Math.abs(dx) > MIN_SWIPE || Math.abs(dy) > MIN_SWIPE) {
-            if (Math.abs(dx) > Math.abs(dy)) {
-                // Horizontal swipe
-                if (dx > 0) handleDirection('right');
-                else handleDirection('left');
-            } else {
-                // Vertical swipe
-                if (dy > 0) handleDirection('down');
-                else handleDirection('up');
-            }
-        }
-        
-        startX = null;
-        startY = null;
-    });
-    
-    // Button controls for mobile
-    upBtn.addEventListener('click', () => handleDirection('up'));
-    leftBtn.addEventListener('click', () => handleDirection('left'));
-    rightBtn.addEventListener('click', () => handleDirection('right'));
-    downBtn.addEventListener('click', () => handleDirection('down'));
-    
-    // Button controls for mobile - add touchstart events for better responsiveness
-    upBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleDirection('up');
-    });
-    leftBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleDirection('left');
-    });
-    rightBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleDirection('right');
-    });
-    downBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleDirection('down');
-    });
-
-    // Enhanced touch controls with visual feedback
-    const touchBtns = document.querySelectorAll('.touch-btn');
-    
-    touchBtns.forEach(btn => {
-        // Add touchstart event with visual feedback
-        btn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            // Add active class for visual feedback
-            btn.classList.add('active');
-            
-            // Handle direction based on button id
-            if (btn.id === 'upBtn') handleDirection('up');
-            else if (btn.id === 'leftBtn') handleDirection('left');
-            else if (btn.id === 'rightBtn') handleDirection('right');
-            else if (btn.id === 'downBtn') handleDirection('down');
-        });
-        
-        // Remove active class on touch end
-        btn.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            btn.classList.remove('active');
-        });
-        
-        // Also remove active class when touch moves outside button
-        btn.addEventListener('touchcancel', (e) => {
-            e.preventDefault();
-            btn.classList.remove('active');
-        });
-    });
-
-    // Add haptic feedback if supported
-    function vibrateIfPossible() {
-        if ('vibrate' in navigator) {
-            navigator.vibrate(30); // Short vibration for 30ms
-        }
-    }
-    
-    // Enhanced touch button handling
-    const touchBtns = document.querySelectorAll('.touch-btn');
-    touchBtns.forEach(btn => {
-        btn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            vibrateIfPossible();
-            btn.classList.add('active');
-            
-            // Handle direction based on button id
-            if (btn.id === 'upBtn') handleDirection('up');
-            else if (btn.id === 'leftBtn') handleDirection('left');
-            else if (btn.id === 'rightBtn') handleDirection('right');
-            else if (btn.id === 'downBtn') handleDirection('down');
-        });
-        
-        btn.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            btn.classList.remove('active');
-        });
-        
-        btn.addEventListener('touchcancel', (e) => {
-            e.preventDefault();
-            btn.classList.remove('active');
-        });
-    });
-}
-
-// Improved mobile touch controls with modern gesture-based approach
-function setupTouchControls() {
     // Get reference to canvas and other elements
     const touchArea = document.getElementById('gameCanvas');
     const swipeIndicator = document.getElementById('swipeIndicator');
@@ -1031,11 +891,13 @@ function setupTouchControls() {
         
         // Show the swipe indicator briefly on first touch
         if (gameRunning && !localStorage.getItem('swipeInstructionShown')) {
-            swipeIndicator.classList.add('visible');
-            setTimeout(() => {
-                swipeIndicator.classList.remove('visible');
-                localStorage.setItem('swipeInstructionShown', 'true');
-            }, 2000);
+            if (swipeIndicator) {
+                swipeIndicator.classList.add('visible');
+                setTimeout(() => {
+                    swipeIndicator.classList.remove('visible');
+                    localStorage.setItem('swipeInstructionShown', 'true');
+                }, 2000);
+            }
         }
     });
 
@@ -1076,30 +938,38 @@ function setupTouchControls() {
     const tapLeft = document.getElementById('tapLeft');
     const tapRight = document.getElementById('tapRight');
     
-    // Add event listeners for tap zones
-    tapUp.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        vibrateIfPossible();
-        handleDirection('up');
-    });
+    // Add event listeners for tap zones if they exist
+    if (tapUp) {
+        tapUp.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            vibrateIfPossible();
+            handleDirection('up');
+        });
+    }
     
-    tapDown.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        vibrateIfPossible();
-        handleDirection('down');
-    });
+    if (tapDown) {
+        tapDown.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            vibrateIfPossible();
+            handleDirection('down');
+        });
+    }
     
-    tapLeft.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        vibrateIfPossible();
-        handleDirection('left');
-    });
+    if (tapLeft) {
+        tapLeft.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            vibrateIfPossible();
+            handleDirection('left');
+        });
+    }
     
-    tapRight.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        vibrateIfPossible();
-        handleDirection('right');
-    });
+    if (tapRight) {
+        tapRight.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            vibrateIfPossible();
+            handleDirection('right');
+        });
+    }
     
     // Add haptic feedback
     function vibrateIfPossible() {
