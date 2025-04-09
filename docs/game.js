@@ -840,15 +840,13 @@ window.onload = function() {
         // Detect if user is on mobile
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         
-        // MODIFIED: Always mark mobile instructions as seen to prevent showing
-        if (isMobile) {
-            localStorage.setItem('mobileInstructionsShown', 'true');
-        }
-        
-        // Hide instructions for mobile users - disabled
-        // if (isMobile && !localStorage.getItem('mobileInstructionsShown')) {
-        //    document.getElementById('mobileInstructions').style.display = 'block';
-        // }
+        // Force mark ALL instruction-related flags as seen
+        localStorage.setItem('mobileInstructionsShown', 'true');
+        localStorage.setItem('tapOnboardingShown', 'true');
+        localStorage.setItem('onboardingShown', 'true');
+        localStorage.setItem('controlsOnboardingShown', 'true');
+        localStorage.setItem('tutorialComplete', 'true');
+        localStorage.setItem('hasSeenInstructions', 'true');
         
         // First call resize to initialize canvas and grid size
         resizeGameCanvas();
@@ -870,6 +868,11 @@ window.onload = function() {
         
         const pauseElement = document.getElementById('gamePaused');
         if (pauseElement) pauseElement.style.display = 'none';
+        
+        // Hide all instruction elements if they exist
+        document.querySelectorAll('.game-info, #mobileInstructions, .instructions, .tutorial, .onboarding-overlay, .hint').forEach(el => {
+            if (el) el.style.display = 'none';
+        });
         
         // Set up keyboard controls - make sure we're adding proper event listeners
         document.addEventListener('keydown', changeDirection);

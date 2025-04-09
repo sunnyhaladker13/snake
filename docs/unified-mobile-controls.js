@@ -424,14 +424,16 @@
         return true;
     }
     
-    // Show onboarding for new users
+    // Show onboarding for new users - COMPLETELY DISABLED
     function showOnboarding() {
-        // MODIFIED: Skip showing onboarding entirely
+        // Skip all onboarding entirely
         localStorage.setItem('onboardingShown', 'true');
-        return false;
+        localStorage.setItem('tapOnboardingShown', 'true');
+        localStorage.setItem('controlsOnboardingShown', 'true');
+        localStorage.setItem('tutorialComplete', 'true');
         
-        // Rest of the function is skipped
-        // ...existing code...
+        console.log("MOBILE CONTROLS: Onboarding disabled");
+        return false;
     }
     
     // Helper function that users can call to debug mobile controls

@@ -67,11 +67,11 @@
         }
     });
     
-    // Create a special reload button for iOS users with neo-brutalist style
+    // Create a special reload button for iOS users with neo-brutalist style - WITHOUT ANY INSTRUCTIONAL TEXT
     function addReloadButton() {
         const button = document.createElement('button');
         button.id = 'iosReloadButton';
-        button.textContent = 'RELOAD CONTROLS';
+        button.textContent = 'RELOAD';
         
         // Apply neo-brutalist styling to match the game
         button.style.cssText = `
@@ -90,7 +90,6 @@
             box-shadow: 2px 2px 0px black;
             transform: rotate(-1deg);
             transition: all 0.15s ease-out;
-            display: none;
         `;
         
         // Add neo-brutalist interaction
@@ -108,9 +107,9 @@
             if (typeof window.recreateMobileTouchControls === 'function') {
                 window.recreateMobileTouchControls();
                 
-                // Show feedback with neo-brutalist style
+                // Show minimal feedback - no instructions
                 const feedback = document.createElement('div');
-                feedback.textContent = 'Controls reloaded!';
+                feedback.textContent = 'Reloaded!';
                 feedback.style.cssText = `
                     position: fixed;
                     top: 50%;
@@ -127,21 +126,16 @@
                 `;
                 document.body.appendChild(feedback);
                 
-                // Remove the feedback after a moment
+                // Remove the feedback after a short moment
                 setTimeout(() => {
                     feedback.style.opacity = '0';
                     feedback.style.transition = 'opacity 0.5s ease-out';
                     setTimeout(() => document.body.removeChild(feedback), 500);
-                }, 1500);
+                }, 1000); // shorter duration
             }
         });
         
         document.body.appendChild(button);
-        
-        // Show button after a delay
-        setTimeout(() => {
-            button.style.display = 'block';
-        }, 5000);
     }
     
     // Add the reload button after DOM is loaded

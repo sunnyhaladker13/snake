@@ -10,10 +10,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <!-- Order matters: viewport fix should run first -->
-    <script src="viewport-fix.js"></script>
     <!-- Add the instructions remover early in the load sequence -->
     <script src="mobile-instructions-remover.js"></script>
+    <!-- Order matters: viewport fix should run next -->
+    <script src="viewport-fix.js"></script>
     <!-- Mobile sizing and UI optimization -->
     <script src="mobile-size-fix.js" defer></script>
     <script src="force-mobile-size.js" defer></script>
@@ -92,7 +92,7 @@
     </div>
     
     <!-- Apply inline style to hide mobile instructions immediately -->
-    <div id="mobileInstructions" class="mobile-instructions" style="display: none !important;">
+    <div id="mobileInstructions" class="mobile-instructions" style="display: none !important; visibility: hidden !important;">
         <button id="closeInstructions" class="close-btn">&times;</button>
         <h3>Mobile Controls</h3>
         <p><strong>• TAP</strong> on the canvas to start the game</p>

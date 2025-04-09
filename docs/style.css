@@ -1956,3 +1956,41 @@ body.modal-open {
         padding: 0.6rem !important; /* More padding */
     }
 }
+
+/* Hide all instruction elements by default */
+.game-info,
+.instructions,
+.guide-toggle,
+.onboarding-overlay,
+.tutorial,
+.mobile-instructions,
+.hint-overlay,
+#mobileInstructions,
+#tapOnboardingOverlay,
+#onboardingOverlay {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+@media (max-width: 767px) {
+    /* More aggressively hide instruction elements on mobile */
+    .game-info, 
+    .instructions, 
+    .guide-toggle, 
+    .tutorial,
+    .fruit-guide, 
+    .keyboard-tip,
+    .hint,
+    #mobileInstructions,
+    .mobile-instructions {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        width: 0 !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        position: absolute !important;
+        z-index: -999 !important;
+    }
+}
